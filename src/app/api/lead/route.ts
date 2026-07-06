@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   // Honeypot: silently accept + drop.
   if (body.company) return Response.json({ ok: true });
 
-  const channel = ["form", "whatsapp", "email", "newsletter"].includes(body.channel ?? "")
+  const channel = ["form", "whatsapp", "email", "newsletter", "poll"].includes(body.channel ?? "")
     ? (body.channel as string)
     : "form";
 
@@ -53,7 +53,10 @@ export async function POST(req: Request) {
   // Email the dealer if Resend is configured (added later).
   const apiKey = process.env.RESEND_API_KEY;
   if (apiKey) {
-    const heading = channel === "newsletter" ? "New newsletter signup" : "New website enquiry";
+    const heading =
+      channel === "newsletter" ? "New newsletter signup"
+      : channel === "poll" ? "Website poll — where a visitor heard about us"
+      : "New website enquiry";
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#111">
         <h2 style="margin:0 0 4px">${heading}</h2>

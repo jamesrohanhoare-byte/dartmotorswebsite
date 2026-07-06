@@ -70,7 +70,6 @@ const STEPS: { title: string; fields: Field[] }[] = [
       { name: "depositAmount", label: "Deposit Amount", half: true, placeholder: "R30 000" },
       { name: "tradeIn", label: "Trade-In", type: "select", options: ["No", "Yes"], half: true },
       { name: "monthlyBudget", label: "Preferred Monthly Budget", half: true, placeholder: "R5 000" },
-      { name: "source", label: "Where did you hear about us?", type: "select", options: ["Facebook", "Instagram", "Google", "AutoTrader", "Drove past the dealership", "Word of mouth / referral", "Other"], half: true },
     ],
   },
 ];

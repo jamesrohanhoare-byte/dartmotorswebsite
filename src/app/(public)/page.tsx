@@ -10,6 +10,7 @@ import VintageCarousel from "@/components/site/VintageCarousel";
 import Reviews from "@/components/site/Reviews";
 import DealerSchema from "@/components/site/DealerSchema";
 import Newsletter from "@/components/site/Newsletter";
+import SourcePopup from "@/components/site/SourcePopup";
 
 export const revalidate = 3600;
 
@@ -209,6 +210,7 @@ export default async function HomePage() {
       </section>
 
       <Newsletter />
+      <SourcePopup />
     </>
   );
 }
