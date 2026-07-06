@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Banknote, Clock, Award, ChevronDown } from "lucide-react";
 import { getFeaturedStock } from "@/lib/queries";
@@ -11,6 +12,10 @@ import DealerSchema from "@/components/site/DealerSchema";
 import Newsletter from "@/components/site/Newsletter";
 
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const VALUES = [
   { icon: Clock, title: "Trusted Since 1975", body: "Fifty years selling quality used cars, built on honesty and integrity." },

@@ -54,13 +54,9 @@ export default function DealerSchema() {
       dealer.youtube,
       dealer.googleReviewsUrl,
     ].filter(Boolean),
+    // No aggregateRating on purpose: the real Google aggregate is low, so we
+    // don't expose it as a star snippet. The curated individual reviews stay.
     ...(reviews.length > 0 && {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: String(dealer.googleRating ?? 5),
-        bestRating: "5",
-        reviewCount: dealer.googleReviewCount ?? reviews.length,
-      },
       review: reviews.map((r) => ({
         "@type": "Review",
         author: { "@type": "Person", name: r.name },
