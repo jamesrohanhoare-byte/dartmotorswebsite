@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+/* ── Dart Motors — light vintage theme (matched to the live site screenshots) ──
+   Cream sections, white cards, warm near-black text, orange primary CTAs,
+   deep maroon accent (the top ticker bar). Clean bold sans headings. */
+:root {
+  --background: #faf7f2; /* warm cream page */
+  --foreground: #1b1712; /* warm near-black text */
+  --surface: #ffffff; /* cards */
+  --surface-2: #f1ece3; /* subtle panels / tag pills */
+  --border: #e7ded0; /* warm hairline */
+  --muted: #7a7267; /* warm grey */
+  --accent: #e85d1f; /* Dart orange (primary CTA) */
+  --accent-hover: #cf4f14;
+  --maroon: #6e1b1b; /* top ticker / secondary accent */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-maroon: var(--maroon);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-sans);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  /* Anchor the page: no horizontal slip on mobile. Use `clip`, NOT `hidden`
+     (hidden turns body into a scroll container and breaks sticky nav). */
+  overflow-x: clip;
+  /* `none` on BOTH axes: kills the rubber-band overscroll that flashes the
+     page background as a white bar above the top nav. */
+  overscroll-behavior: none;
+  max-width: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Bold Inter headings (same typeface as the live site). */
+h1,
+h2,
+h3 {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Stop iOS Safari auto-zoom on field tap (needs >= 16px). */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+::selection {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+/* Page horizontal padding. */
+.px-page {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+@media (min-width: 768px) {
+  .px-page {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+@media (min-width: 1280px) {
+  .px-page {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+/* Eyebrow / label. */
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Hide scrollbar (carousels / swipeable rows) while keeping scroll. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Slow cinematic hero zoom (Ken Burns). */
+@keyframes heroZoom {
+  from { transform: scale(1.1); }
+  to { transform: scale(1); }
+}
+.hero-zoom {
+  animation: heroZoom 14s ease-out forwards;
+}
+
+/* Marquee ticker (maroon top bar). */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Reusable button styles matching the screenshots. */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 20px -8px rgba(232, 93, 31, 0.5);
+  transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px -8px rgba(232, 93, 31, 0.55);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}

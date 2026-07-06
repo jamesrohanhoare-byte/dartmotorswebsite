@@ -1,0 +1,35 @@
+name: VMG → Dart Motors Stock Sync
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours (backup to the Vercel cron)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Self-healing: retry up to 5x over ~5 min so a slow feed/Vercel window
+      # recovers instead of failing (learned the hard way on the Framer feed).
+      - name: Trigger stock sync (retry until success)
+        run: |
+          SUCCESS=0
+          for i in 1 2 3 4 5; do
+            echo "Sync attempt $i of 5..."
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              --max-time 120 \
+              -X POST "${{ secrets.SYNC_URL }}" \
+              -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Sync succeeded on attempt $i"
+              SUCCESS=1
+              break
+            fi
+            echo "Attempt $i returned $STATUS"
+            [ "$i" -lt 5 ] && sleep $((i * 30))
+          done
+          if [ "$SUCCESS" != "1" ]; then
+            echo "❌ All 5 sync attempts failed"
+            exit 1
+          fi
