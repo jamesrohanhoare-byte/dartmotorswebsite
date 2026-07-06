@@ -74,7 +74,13 @@ const STEPS: { title: string; fields: Field[] }[] = [
   },
 ];
 
-export default function FinanceWizard({ defaultVehicle = "" }: { defaultVehicle?: string }) {
+export default function FinanceWizard({
+  defaultVehicle = "",
+  defaultStockSlug = "",
+}: {
+  defaultVehicle?: string;
+  defaultStockSlug?: string;
+}) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<Record<string, string>>({ vehicleOfInterest: defaultVehicle });
   const [consent, setConsent] = useState(false);
@@ -95,7 +101,15 @@ export default function FinanceWizard({ defaultVehicle = "" }: { defaultVehicle?
   async function submit() {
     if (!consent || status === "busy") return;
     setStatus("busy");
-    const payload = { ...data, maritalStatus: data.maritalStatus || "", creditCheckConsent: "Yes", company };
+    const payload = {
+      ...data,
+      maritalStatus: data.maritalStatus || "",
+      creditCheckConsent: "Yes",
+      // Tag the application to the exact car when they came from a vehicle page
+      // (lands in site_finance_applications.details.stock_slug for per-car attribution).
+      ...(defaultStockSlug ? { stock_slug: defaultStockSlug } : {}),
+      company,
+    };
     try {
       const res = await fetch("/api/finance", {
         method: "POST",

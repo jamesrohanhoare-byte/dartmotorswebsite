@@ -12,6 +12,7 @@ import {
   transmissionFromVariant,
 } from "@/lib/format";
 import Gallery from "@/components/site/Gallery";
+import VehicleInterest from "@/components/site/VehicleInterest";
 import VehicleEnquiry from "@/components/site/VehicleEnquiry";
 import VehicleCard from "@/components/site/VehicleCard";
 import ScrollRow from "@/components/site/ScrollRow";
@@ -121,9 +122,18 @@ export default async function VehiclePage(props: {
             ))}
           </dl>
 
-          <div className="mt-6">
+          <div className="mt-6 space-y-3">
+            {/* PRIMARY: capture the lead first, tagged to this car, then hand to WhatsApp. */}
+            <VehicleInterest stockSlug={v.slug} title={title} message={msg} />
+
+            <div className="flex items-center gap-3 text-xs text-muted">
+              <span className="h-px flex-1 bg-border" /> or reach us directly <span className="h-px flex-1 bg-border" />
+            </div>
+
+            {/* Existing quick channels (WhatsApp / Email / Call), still logged per-car. */}
             <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} />
-            <Link href={`/financing?vehicle=${encodeURIComponent(title)}`} className="mt-3 block rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-medium transition-colors hover:border-accent hover:text-accent">
+
+            <Link href={`/financing?vehicle=${encodeURIComponent(title)}&stock=${encodeURIComponent(v.slug)}`} className="block rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-medium transition-colors hover:border-accent hover:text-accent">
               Apply for in-house finance on this car →
             </Link>
           </div>

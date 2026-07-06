@@ -11,10 +11,12 @@ type Payload = {
   channel?: string;
   name?: string;
   contact?: string;
+  phone?: string;
   message?: string;
   subject?: string;
   stock_slug?: string;
   source?: string; // "Where did you hear about us?"
+  page?: string; // pathname the lead came from
   company?: string; // honeypot
 };
 
@@ -31,9 +33,15 @@ export async function POST(req: Request) {
   // Honeypot: silently accept + drop.
   if (body.company) return Response.json({ ok: true });
 
-  const channel = ["form", "whatsapp", "email", "newsletter", "poll"].includes(body.channel ?? "")
+  const channel = ["form", "whatsapp", "email", "newsletter", "poll", "interested", "finance"].includes(body.channel ?? "")
     ? (body.channel as string)
     : "form";
+
+  // Build meta from whatever extras were sent (phone, attribution source, page).
+  const meta: Record<string, string> = {};
+  if (body.source) meta.source = body.source.slice(0, 100);
+  if (body.phone) meta.phone = body.phone.slice(0, 60);
+  if (body.page) meta.page = body.page.slice(0, 200);
 
   // Save the lead (best-effort; email is independent so nothing is lost).
   try {
@@ -44,7 +52,7 @@ export async function POST(req: Request) {
       contact: body.contact?.slice(0, 200) ?? null,
       channel,
       message: body.message?.slice(0, 4000) ?? body.subject?.slice(0, 200) ?? null,
-      meta: body.source ? { source: body.source.slice(0, 100) } : null,
+      meta: Object.keys(meta).length ? meta : null,
     });
   } catch (e) {
     console.error("[lead] db insert failed:", e instanceof Error ? e.message : e);
@@ -56,6 +64,8 @@ export async function POST(req: Request) {
     const heading =
       channel === "newsletter" ? "New newsletter signup"
       : channel === "poll" ? "Website poll — where a visitor heard about us"
+      : channel === "interested" ? "New vehicle interest"
+      : channel === "finance" ? "New finance enquiry"
       : "New website enquiry";
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#111">
@@ -63,7 +73,8 @@ export async function POST(req: Request) {
         <p style="margin:0 0 16px;color:#666;font-size:13px">via ${esc(dealer.name)} website</p>
         <table style="width:100%;border-collapse:collapse;font-size:14px">
           ${body.name ? `<tr><td style="padding:6px 0;color:#888;width:110px">Name</td><td><strong>${esc(body.name)}</strong></td></tr>` : ""}
-          ${body.contact ? `<tr><td style="padding:6px 0;color:#888">Contact</td><td>${esc(body.contact)}</td></tr>` : ""}
+          ${body.contact ? `<tr><td style="padding:6px 0;color:#888">${body.phone ? "Email" : "Contact"}</td><td>${esc(body.contact)}</td></tr>` : ""}
+          ${body.phone ? `<tr><td style="padding:6px 0;color:#888">Phone</td><td>${esc(body.phone)}</td></tr>` : ""}
           ${body.stock_slug ? `<tr><td style="padding:6px 0;color:#888">Vehicle</td><td>${esc(body.stock_slug)}</td></tr>` : ""}
           ${body.source ? `<tr><td style="padding:6px 0;color:#888">Heard via</td><td>${esc(body.source)}</td></tr>` : ""}
         </table>

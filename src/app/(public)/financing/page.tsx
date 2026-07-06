@@ -19,9 +19,9 @@ const faqs = [
 export default async function FinancingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ vehicle?: string }>;
+  searchParams: Promise<{ vehicle?: string; stock?: string }>;
 }) {
-  const { vehicle } = await searchParams;
+  const { vehicle, stock } = await searchParams;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -48,7 +48,7 @@ export default async function FinancingPage({
       </section>
 
       <section className="px-page mx-auto max-w-[1400px] py-14 md:py-16">
-        <FinanceWizard defaultVehicle={vehicle ?? ""} />
+        <FinanceWizard defaultVehicle={vehicle ?? ""} defaultStockSlug={stock ?? ""} />
       </section>
 
       <section className="px-page mx-auto max-w-2xl pb-20">

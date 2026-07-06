@@ -18,6 +18,7 @@ const LABELS: Record<string, string> = {
   timeWithBank: "Time With Bank", vehicleOfInterest: "Vehicle of Interest",
   depositAmount: "Deposit", tradeIn: "Trade-In", monthlyBudget: "Monthly Budget",
   source: "Heard via", creditCheckConsent: "Credit Check Consent",
+  stock_slug: "Stock ref (car)",
 };
 
 const esc = (s = "") => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
