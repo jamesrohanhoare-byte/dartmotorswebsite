@@ -11,6 +11,7 @@ export interface SyncResult {
   fetched: number;
   upserted: number;
   archived: number;
+  purged: number;
 }
 
 /**
@@ -85,5 +86,22 @@ export async function syncStock(): Promise<SyncResult> {
     archived = staleSlugs.length;
   }
 
-  return { fetched: vehicles.length, upserted: rows.length, archived };
+  // Retention: purge website enquiries + finance applications older than
+  // LEAD_RETENTION_DAYS (default 365 = 12 months) for POPIA + tidiness. Runs on
+  // the same daily job; the service-role client bypasses RLS so deletes work.
+  const retentionDays = Number(process.env.LEAD_RETENTION_DAYS ?? 365);
+  let purged = 0;
+  if (retentionDays > 0) {
+    const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
+    for (const table of ["site_leads", "site_finance_applications"] as const) {
+      const { error: delErr, count } = await supabase
+        .from(table)
+        .delete({ count: "exact" })
+        .lt("created_at", cutoff);
+      if (delErr) throw new Error(`${table} purge failed: ${delErr.message}`);
+      purged += count ?? 0;
+    }
+  }
+
+  return { fetched: vehicles.length, upserted: rows.length, archived, purged };
 }

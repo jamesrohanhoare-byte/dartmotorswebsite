@@ -170,16 +170,19 @@ export default async function HomePage() {
       {/* ── Reviews ──────────────────────────────────────────── */}
       <Reviews />
 
-      {/* ── In-house finance CTA ─────────────────────────────── */}
-      <section className="bg-surface-2/50 py-14 md:py-20">
-        <div className="px-page mx-auto max-w-2xl text-center">
+      {/* ── In-house finance CTA (photo band) ────────────────── */}
+      <section className="relative overflow-hidden py-20 text-white md:py-28">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/ready-to-ride.jpg" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/65 to-black/80" />
+        <div className="px-page relative mx-auto max-w-2xl text-center">
           <Reveal>
-            <p className="eyebrow mb-4">Financing</p>
+            <p className="eyebrow mb-4 text-accent">Financing</p>
             <h2 className="text-3xl font-extrabold leading-tight md:text-4xl">In-house finance made simple.</h2>
-            <p className="mx-auto mt-5 max-w-xl leading-relaxed text-muted">No banks. No hassle. Just drive. We finance in-house, so more people get approved. One quick application and you could be driving sooner.</p>
+            <p className="mx-auto mt-5 max-w-xl leading-relaxed text-white/85">No banks. No hassle. Just drive. We finance in-house, so more people get approved. One quick application and you could be driving sooner.</p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link href="/financing" className="btn-primary rounded-full px-7 py-3.5 text-sm font-semibold">Apply for finance</Link>
-              <a href={whatsappLink(`Hi ${dealer.name}, I'd like help finding a car.`)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-border bg-surface px-7 py-3.5 text-sm font-medium transition-colors hover:bg-surface-2">Chat on WhatsApp</a>
+              <a href={whatsappLink(`Hi ${dealer.name}, I'd like help finding a car.`)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20">Chat on WhatsApp</a>
             </div>
           </Reveal>
         </div>
