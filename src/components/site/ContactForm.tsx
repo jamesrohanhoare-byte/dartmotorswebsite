@@ -4,7 +4,7 @@ import { useState } from "react";
 import { dealer, whatsappLink } from "@/config/dealer";
 
 export default function ContactForm() {
-  const [form, setForm] = useState({ name: "", contact: "", message: "" });
+  const [form, setForm] = useState({ name: "", contact: "", message: "", source: "" });
   const [company, setCompany] = useState(""); // honeypot
   const [status, setStatus] = useState<"idle" | "busy" | "done">("idle");
 
@@ -48,6 +48,16 @@ export default function ContactForm() {
         <input required value={form.contact} onChange={(e) => set("contact", e.target.value)} placeholder="Phone or email" className="h-12 w-full rounded-lg border border-border bg-surface px-4 text-sm outline-none focus:border-accent" />
       </div>
       <textarea required value={form.message} onChange={(e) => set("message", e.target.value)} placeholder="How can we help? Mention a car if you have one in mind." rows={4} className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-accent" />
+      <select value={form.source} onChange={(e) => set("source", e.target.value)} className="h-12 w-full rounded-lg border border-border bg-surface px-4 text-sm text-muted outline-none focus:border-accent">
+        <option value="">Where did you hear about us? (optional)</option>
+        <option value="Facebook">Facebook</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Google">Google</option>
+        <option value="AutoTrader">AutoTrader</option>
+        <option value="Drove past the dealership">Drove past the dealership</option>
+        <option value="Word of mouth / referral">Word of mouth / referral</option>
+        <option value="Other">Other</option>
+      </select>
       <button type="submit" disabled={status === "busy"} className="btn-primary w-full rounded-full px-6 py-3.5 text-sm font-semibold disabled:opacity-60">
         {status === "busy" ? "Sending..." : "Send message"}
       </button>

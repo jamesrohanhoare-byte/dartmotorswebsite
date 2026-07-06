@@ -14,6 +14,7 @@ type Payload = {
   message?: string;
   subject?: string;
   stock_slug?: string;
+  source?: string; // "Where did you hear about us?"
   company?: string; // honeypot
 };
 
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
       contact: body.contact?.slice(0, 200) ?? null,
       channel,
       message: body.message?.slice(0, 4000) ?? body.subject?.slice(0, 200) ?? null,
+      meta: body.source ? { source: body.source.slice(0, 100) } : null,
     });
   } catch (e) {
     console.error("[lead] db insert failed:", e instanceof Error ? e.message : e);
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
           ${body.name ? `<tr><td style="padding:6px 0;color:#888;width:110px">Name</td><td><strong>${esc(body.name)}</strong></td></tr>` : ""}
           ${body.contact ? `<tr><td style="padding:6px 0;color:#888">Contact</td><td>${esc(body.contact)}</td></tr>` : ""}
           ${body.stock_slug ? `<tr><td style="padding:6px 0;color:#888">Vehicle</td><td>${esc(body.stock_slug)}</td></tr>` : ""}
+          ${body.source ? `<tr><td style="padding:6px 0;color:#888">Heard via</td><td>${esc(body.source)}</td></tr>` : ""}
         </table>
         ${body.message ? `<div style="margin-top:16px;padding:14px 16px;background:#f5f5f3;border-radius:10px;font-size:14px">${esc(body.message)}</div>` : ""}
       </div>`;
