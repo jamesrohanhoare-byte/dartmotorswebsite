@@ -1,18 +1,35 @@
 @import "tailwindcss";
 
-/* ── Dart Motors — light vintage theme (matched to the live site screenshots) ──
-   Cream sections, white cards, warm near-black text, orange primary CTAs,
-   deep maroon accent (the top ticker bar). Clean bold sans headings. */
+/* ── Dart Motors — dark vintage theme ──
+   Charcoal sections (same #1b1712 as the header/footer), warm dark cards,
+   warm off-white text, orange primary CTAs, deep maroon accent (the top
+   ticker bar). Clean bold sans headings. The heritage section keeps the
+   original cream look via `.theme-cream` below. */
 :root {
-  --background: #faf7f2; /* warm cream page */
-  --foreground: #1b1712; /* warm near-black text */
-  --surface: #ffffff; /* cards */
-  --surface-2: #f1ece3; /* subtle panels / tag pills */
-  --border: #e7ded0; /* warm hairline */
-  --muted: #7a7267; /* warm grey */
+  --background: #1b1712; /* charcoal page (matches header/footer) */
+  --foreground: #f4f0e9; /* warm off-white text */
+  --surface: #252019; /* cards — one step up from the page */
+  --surface-2: #2e2820; /* subtle panels / tag pills */
+  --border: #3b342a; /* warm dark hairline */
+  --muted: #a89c8c; /* warm light grey */
   --accent: #e85d1f; /* Dart orange (primary CTA) */
   --accent-hover: #cf4f14;
   --maroon: #6e1b1b; /* top ticker / secondary accent */
+}
+
+/* The original cream palette, scoped. Applied to the heritage / vintage-photo
+   section so the archive photos keep their warm light backdrop while the rest
+   of the site runs dark. Utilities inside (bg-surface, text-muted, …) resolve
+   to these values because @theme inline references the raw vars. */
+.theme-cream {
+  --background: #f1ece3;
+  --foreground: #1b1712;
+  --surface: #ffffff;
+  --surface-2: #e9e1d3;
+  --border: #ddd2bf;
+  --muted: #7a7267;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 @theme inline {

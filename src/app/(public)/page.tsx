@@ -150,7 +150,8 @@ export default async function HomePage() {
       </section>
 
       {/* ── Heritage · Since 1975 (real archive photos) ──────── */}
-      <section className="bg-surface-2 py-16 md:py-24">
+      {/* Stays cream (James's call): the vintage photos live on the original light backdrop. */}
+      <section className="theme-cream py-16 md:py-24">
         <div className="px-page mx-auto grid max-w-[1400px] items-center gap-12 md:grid-cols-2">
           <Reveal>
             <span className="eyebrow mb-4 text-accent">Est. 1975</span>

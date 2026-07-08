@@ -68,7 +68,7 @@ export default function VehicleCard({
   return (
     <Link
       href={`/shop/${vehicle.slug}`}
-      className="group block overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5"
+      className="group block overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
     >
       {content}
     </Link>

@@ -136,7 +136,7 @@ export default function Gallery({ images, alt }: { images: string[]; alt: string
               type="button"
               aria-label="Previous photo"
               onClick={() => goTo(active - 1)}
-              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-foreground backdrop-blur transition-colors hover:bg-white"
+              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-neutral-900 backdrop-blur transition-colors hover:bg-white"
             >
               <ChevronLeft size={20} />
             </button>
@@ -144,7 +144,7 @@ export default function Gallery({ images, alt }: { images: string[]; alt: string
               type="button"
               aria-label="Next photo"
               onClick={() => goTo(active + 1)}
-              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-foreground backdrop-blur transition-colors hover:bg-white"
+              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-neutral-900 backdrop-blur transition-colors hover:bg-white"
             >
               <ChevronRight size={20} />
             </button>

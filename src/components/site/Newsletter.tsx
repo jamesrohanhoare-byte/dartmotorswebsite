@@ -27,7 +27,7 @@ export default function Newsletter() {
   }
 
   return (
-    <section className="bg-[#1b1712] text-white">
+    <section className="border-t border-white/10 bg-[#1b1712] text-white">
       <div className="px-page mx-auto max-w-[1400px] py-14">
         <div className="grid items-center gap-8 md:grid-cols-2">
           <div>

@@ -4,7 +4,7 @@ import Socials from "@/components/site/Socials";
 export default function Footer({ logoUrl }: { logoUrl?: string | null }) {
   const year = new Date().getFullYear();
   return (
-    <footer className="bg-[#1b1712] text-white">
+    <footer className="border-t border-white/10 bg-[#1b1712] text-white">
       <div className="px-page mx-auto max-w-[1400px] py-12">
         <div className="grid gap-10 md:grid-cols-3">
           <div className="md:col-span-2">

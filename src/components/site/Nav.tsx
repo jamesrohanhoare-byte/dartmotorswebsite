@@ -24,7 +24,7 @@ export default function Nav({ logoUrl }: { logoUrl?: string | null }) {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#1b1712] text-white">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#1b1712] text-white">
       <div className="px-page mx-auto flex h-20 max-w-[1400px] items-center justify-between">
         <Link href="/" aria-label={dealer.name} className="flex items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
