@@ -1,11 +1,15 @@
 import { syncAutoTraderLeads } from "@/lib/autotrader/poll";
 
-// AutoTrader Leads Service (v2) → site_leads poller. Auth mirrors /api/sync exactly:
-//   • Vercel cron calls GET with the `x-vercel-cron: 1` header (no secret needed)
-//   • GitHub Action / manual calls POST with `Authorization: Bearer <SYNC_SECRET>`
+// AutoTrader Leads Service (v2) → site_leads poller.
 //
-// Runs every 2 hours (see .github/workflows/autotrader.yml) — GitHub reliably fires
-// long intervals but drops frequent ones. Ingest is deduped, so overlaps are harmless.
+// Scheduled by a Supabase pg_cron job (`autotrader-leads-sync`, */5 * * * *) that
+// POSTs this route every 5 min with `Authorization: Bearer <AUTOTRADER_SYNC_SECRET>`.
+// pg_cron fires frequent intervals reliably; GitHub Actions silently drops them, so
+// the old autotrader.yml Action was removed. Ingest is deduped by external_id, so
+// overlapping runs are harmless.
+//
+// Auth accepts any of: the `x-vercel-cron: 1` header, the dedicated
+// AUTOTRADER_SYNC_SECRET (pg_cron), or the shared SYNC_SECRET (manual / backup call).
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
