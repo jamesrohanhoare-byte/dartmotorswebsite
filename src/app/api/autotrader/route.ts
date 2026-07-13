@@ -15,8 +15,11 @@ function authorized(req: Request): boolean {
   if (req.headers.get("x-vercel-cron") === "1") return true;
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace("Bearer ", "").trim();
-  const secret = process.env.SYNC_SECRET ?? "";
-  return secret.length > 0 && token === secret;
+  if (!token) return false;
+  // Accept the shared SYNC_SECRET (GitHub Actions) OR a dedicated AUTOTRADER_SYNC_SECRET
+  // (used by the Supabase pg_cron poller, so it never touches the stock-sync secret).
+  const secrets = [process.env.SYNC_SECRET, process.env.AUTOTRADER_SYNC_SECRET].filter(Boolean);
+  return secrets.includes(token);
 }
 
 async function handle(req: Request) {
