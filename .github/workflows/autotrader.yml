@@ -13,23 +13,34 @@ jobs:
       # Same self-healing retry as the stock sync: ingest is deduped by external_id
       # so overlapping/retried runs are harmless.
       - name: Trigger AutoTrader lead sync (retry until success)
+        env:
+          URL: ${{ secrets.AUTOTRADER_SYNC_URL }}
+          SECRET: ${{ secrets.SYNC_SECRET }}
         run: |
+          if [ -z "$URL" ]; then
+            echo "❌ AUTOTRADER_SYNC_URL secret is empty / not set."
+            echo "   Add it as a repo *Secret* (not a Variable):"
+            echo "   Settings → Secrets and variables → Actions → Secrets tab → New repository secret"
+            echo "   Name: AUTOTRADER_SYNC_URL   Value: https://dartmotors.net/api/autotrader"
+            exit 1
+          fi
           SUCCESS=0
+          STATUS="000"
           for i in 1 2 3 4 5; do
             echo "AutoTrader sync attempt $i of 5..."
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              --max-time 120 \
-              -X POST "${{ secrets.AUTOTRADER_SYNC_URL }}" \
-              -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}")
+            # `|| echo 000` so a connection error doesn't abort the script under set -e.
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 \
+              -X POST "$URL" -H "Authorization: Bearer $SECRET" || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "✅ AutoTrader sync succeeded on attempt $i"
               SUCCESS=1
               break
             fi
-            echo "Attempt $i returned $STATUS"
+            echo "Attempt $i returned HTTP $STATUS"
             [ "$i" -lt 5 ] && sleep $((i * 15))
           done
           if [ "$SUCCESS" != "1" ]; then
-            echo "❌ All 5 AutoTrader sync attempts failed"
+            echo "❌ All 5 AutoTrader sync attempts failed (last HTTP $STATUS)"
+            [ "$STATUS" = "401" ] && echo "   401 = Vercel SYNC_SECRET and GitHub SYNC_SECRET don't match."
             exit 1
           fi
