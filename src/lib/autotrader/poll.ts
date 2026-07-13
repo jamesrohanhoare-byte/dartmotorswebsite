@@ -90,13 +90,38 @@ async function getJson<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-async function post(path: string, body: unknown): Promise<void> {
-  const res = await fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { ...authHeaders(), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`AutoTrader POST ${path} -> ${res.status}`);
+// Acknowledge leads. ids go as REPEATED query params (?ids=1&ids=2&received=true),
+// NOT a JSON body (a body returns 400 "ids required"). Best-effort: never throws —
+// the leads are already saved + deduped, so a missed ack just re-fetches harmlessly.
+// A few AutoTrader dealer ids reliably 500 (stale duplicate records), and one bad
+// id poisons its whole batch, so on a batch failure we retry it id-by-id to
+// acknowledge the good ones and skip only the broken.
+async function ackBatch(path: string, ids: number[]): Promise<boolean> {
+  if (!ids.length) return true;
+  const qs = ids.map((id) => `ids=${id}`).join("&") + "&received=true";
+  try {
+    const res = await fetch(`${BASE}${path}?${qs}`, { method: "POST", headers: authHeaders() });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function postReceived(path: string, ids: number[]): Promise<number> {
+  let done = 0;
+  const CHUNK = 20;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const batch = ids.slice(i, i + CHUNK);
+    if (await ackBatch(path, batch)) {
+      done += batch.length;
+      continue;
+    }
+    // Batch rejected (a poison id inside) — acknowledge id-by-id, skip the bad ones.
+    for (const id of batch) {
+      if (await ackBatch(path, [id])) done += 1;
+    }
+  }
+  return done;
 }
 
 /**
@@ -212,16 +237,8 @@ export async function syncAutoTraderLeads(opts: { acknowledge?: boolean } = {}):
   //    marked received until it is safely in our DB. Idempotent w.r.t. re-pulls.
   let acknowledged = 0;
   if (acknowledge) {
-    const contactIds = contactLeads.map((l) => l.id);
-    const dealerIds = dealerLeads.map((l) => l.id);
-    if (contactIds.length) {
-      await post(`${API}/leads/set-received`, { ids: contactIds, received: true });
-      acknowledged += contactIds.length;
-    }
-    if (dealerIds.length) {
-      await post(`${API}/leads/dealers/received`, { ids: dealerIds, received: true });
-      acknowledged += dealerIds.length;
-    }
+    acknowledged += await postReceived(`${API}/leads/set-received`, contactLeads.map((l) => l.id));
+    acknowledged += await postReceived(`${API}/leads/dealers/received`, dealerLeads.map((l) => l.id));
   }
 
   // 5. Heartbeat for the "last synced X ago" stamp on the Sales & Leads page.
