@@ -9,7 +9,7 @@ Funnel Dart Motors' AutoTrader leads into the same `site_leads` table the websit
 - **Auto-reply to the customer:** NOT in v1. Logging only.
 - **Lead streams:** pull BOTH endpoints. The `/leads/dealers` WhatsApp-click stream is noisy (repeat clicks by one person), so it is **deduped by phone** (one lead per person, most recent). Live proof: 46 raw clicks → 24 unique people.
 - **Dedupe:** additive `external_id` column + a plain (non-partial) unique index. Contact leads key `at:{id}`; WhatsApp leads key `atd:{phone}`.
-- **Poll interval:** every 2 hours (GitHub Action, self-healing retry). GitHub reliably fires long intervals but drops frequent ones like `*/15`; leads aren't time-critical enough to justify an external cron. `0 */2 * * *`.
+- **Poll interval:** every 5 min via a **Supabase pg_cron** job (reliable, in-database, free) — NOT GitHub Actions, which drops frequent crons. See the Scheduler section.
 - **Retention:** NO auto-purge. The dealer deletes leads by hand (delete button per row; migration 00046 grants the staff delete policy). `LEAD_RETENTION_DAYS` now defaults to 0 (off) so nothing disappears on a month rollover.
 - **Page organization (Dartbooks Sales & Leads):** three tabs — **Enquiries** (real leads incl. AutoTrader, excl. poll), **Finance applications**, **Where did you find us** (the "heard-about-us" poll answers, kept out of enquiries so they don't mislead the count). Stat tiles are all **weekly** (last 7 days), not lifetime totals.
 - **Finance:** AutoTrader has no finance-application feed — only a `preQualifiedStatus` flag per lead, surfaced as a green "Pre-qualified" badge. Full finance applications stay the website wizard (the Finance tab).
@@ -62,9 +62,19 @@ Also add `"autotrader"` to the channel allowlist in `web/src/app/api/lead/route.
 - `src/pages/sales/SalesPage.tsx`: add `autotrader: 'AutoTrader'` to `CHANNEL_LABEL`; render a badge when `channel === 'autotrader'` (reuse the `SourceBadge` pill style or a channel-coloured pill). Optionally surface price / a "pre-qualified" flag.
 - Add a **"Last synced X ago"** stamp near the Enquiries tab, reading `site_sync_state` where `key='autotrader_leads'`. This is the watchdog (no separate alerting in v1, per James).
 
-## Scheduler
-- GitHub Action `web/.github/workflows/autotrader.yml` mirroring `sync.yml`: cron `*/15 * * * *`, POST the route URL with `Authorization: Bearer ${SYNC_SECRET}`, retry + backoff. (Proven pattern; same as VMG stock sync.)
-- Watchdog = the last-synced stamp on the page.
+## Scheduler — Supabase pg_cron (the reliable standard)
+- **Poller = a `pg_cron` job inside the dealer's own Supabase** (`autotrader-leads-sync`, `*/5 * * * *`) that uses `pg_net` to `net.http_post` the route with `Authorization: Bearer ${AUTOTRADER_SYNC_SECRET}` (a dedicated secret, separate from the shared `SYNC_SECRET`). Reliable, in-database, free, no external service.
+- **Why NOT GitHub Actions:** GitHub silently drops frequent scheduled crons — a `*/15` fired **0 times in 40 min** (2026-07-13). It only honours long intervals (fine for the 6h VMG stock sync, useless for lead polling). pg_cron is a real Postgres cron and fires on time. **This is now the standard scheduler for lead pollers on every dealer build.** The old `autotrader.yml` GitHub Action was removed once pg_cron proved out; the route still accepts either secret, so a GitHub backup could be re-added if ever wanted.
+- Setup SQL (run once per dealer via the Management API):
+  ```sql
+  create extension if not exists pg_cron; create extension if not exists pg_net;
+  select cron.schedule('autotrader-leads-sync','*/5 * * * *',
+    $job$ select net.http_post(
+      url:='https://<dealer-domain>/api/autotrader',
+      headers:=jsonb_build_object('Authorization','Bearer <AUTOTRADER_SYNC_SECRET>','Content-Type','application/json'),
+      body:='{}'::jsonb, timeout_milliseconds:=55000); $job$);
+  ```
+- Watchdog = the last-synced stamp on the page (amber threshold 3h; effectively never trips at a 5-min cadence).
 
 ## Out of scope (v1)
 - Auto-reply email to the customer (Phase 1.5 toggle).
@@ -73,8 +83,9 @@ Also add `"autotrader"` to the channel allowlist in `web/src/app/api/lead/route.
 
 ## Reusable module — onboarding a new dealer
 1. AutoTrader (Yu-Lin) links the new dealer to the Social Agencies account and provides their DID.
-2. Set `AUTOTRADER_DEALER_ID` for that dealer's site; reuse the shared `AUTOTRADER_API_TOKEN`.
-3. Deploy. Same engine, new number. Later: codify as an extension of the `dealer-lead-flow` skill.
+2. Set `AUTOTRADER_DEALER_ID` + a fresh per-dealer `AUTOTRADER_SYNC_SECRET` on that dealer's site; reuse the shared `AUTOTRADER_API_TOKEN`. Deploy.
+3. Set up the **pg_cron poller** on that dealer's Supabase (Scheduler SQL above, URL pointed at their domain). This is the reliable scheduler — do NOT rely on GitHub Actions for lead polling.
+4. Same engine, new number. Later: codify as an extension of the `dealer-lead-flow` skill.
 
 ## Test plan (verify before "done")
 1. Manual poll vs Dart DID 31613 → the 14 unreceived leads land in `site_leads` (channel `autotrader`, correct car/price/contact/date).
