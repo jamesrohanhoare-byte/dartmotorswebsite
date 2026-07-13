@@ -86,10 +86,11 @@ export async function syncStock(): Promise<SyncResult> {
     archived = staleSlugs.length;
   }
 
-  // Retention: purge website enquiries + finance applications older than
-  // LEAD_RETENTION_DAYS (default 365 = 12 months) for POPIA + tidiness. Runs on
-  // the same daily job; the service-role client bypasses RLS so deletes work.
-  const retentionDays = Number(process.env.LEAD_RETENTION_DAYS ?? 365);
+  // Retention: OFF by default. The dealer manages deletions by hand (a delete
+  // button in Dartbooks) and explicitly did NOT want a month-rollover job silently
+  // wiping leads. Set LEAD_RETENTION_DAYS > 0 only for a dealer who opts into
+  // auto-purge; otherwise nothing is auto-deleted.
+  const retentionDays = Number(process.env.LEAD_RETENTION_DAYS ?? 0);
   let purged = 0;
   if (retentionDays > 0) {
     const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();

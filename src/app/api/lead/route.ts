@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   // Honeypot: silently accept + drop.
   if (body.company) return Response.json({ ok: true });
 
-  const channel = ["form", "whatsapp", "email", "newsletter", "poll", "interested", "finance"].includes(body.channel ?? "")
+  const channel = ["form", "whatsapp", "email", "newsletter", "poll", "interested", "finance", "autotrader"].includes(body.channel ?? "")
     ? (body.channel as string)
     : "form";
 
