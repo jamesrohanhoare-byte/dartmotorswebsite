@@ -2,7 +2,7 @@ name: AutoTrader → Dart Motors Lead Sync
 
 on:
   schedule:
-    - cron: "*/15 * * * *" # every 15 minutes (AutoTrader is pull-only)
+    - cron: "0 */2 * * *" # every 2 hours — GitHub reliably fires long intervals; */15 got dropped
   workflow_dispatch:
 
 jobs:

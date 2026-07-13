@@ -4,8 +4,8 @@ import { syncAutoTraderLeads } from "@/lib/autotrader/poll";
 //   • Vercel cron calls GET with the `x-vercel-cron: 1` header (no secret needed)
 //   • GitHub Action / manual calls POST with `Authorization: Bearer <SYNC_SECRET>`
 //
-// Runs every ~15 min (see .github/workflows/autotrader.yml). Ingest is deduped, so
-// overlapping runs are harmless.
+// Runs every 2 hours (see .github/workflows/autotrader.yml) — GitHub reliably fires
+// long intervals but drops frequent ones. Ingest is deduped, so overlaps are harmless.
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

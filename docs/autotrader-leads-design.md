@@ -9,7 +9,7 @@ Funnel Dart Motors' AutoTrader leads into the same `site_leads` table the websit
 - **Auto-reply to the customer:** NOT in v1. Logging only.
 - **Lead streams:** pull BOTH endpoints. The `/leads/dealers` WhatsApp-click stream is noisy (repeat clicks by one person), so it is **deduped by phone** (one lead per person, most recent). Live proof: 46 raw clicks → 24 unique people.
 - **Dedupe:** additive `external_id` column + a plain (non-partial) unique index. Contact leads key `at:{id}`; WhatsApp leads key `atd:{phone}`.
-- **Poll interval:** every ~15 min (GitHub Action, self-healing retry).
+- **Poll interval:** every 2 hours (GitHub Action, self-healing retry). GitHub reliably fires long intervals but drops frequent ones like `*/15`; leads aren't time-critical enough to justify an external cron. `0 */2 * * *`.
 - **Retention:** NO auto-purge. The dealer deletes leads by hand (delete button per row; migration 00046 grants the staff delete policy). `LEAD_RETENTION_DAYS` now defaults to 0 (off) so nothing disappears on a month rollover.
 - **Page organization (Dartbooks Sales & Leads):** three tabs — **Enquiries** (real leads incl. AutoTrader, excl. poll), **Finance applications**, **Where did you find us** (the "heard-about-us" poll answers, kept out of enquiries so they don't mislead the count). Stat tiles are all **weekly** (last 7 days), not lifetime totals.
 - **Finance:** AutoTrader has no finance-application feed — only a `preQualifiedStatus` flag per lead, surfaced as a green "Pre-qualified" badge. Full finance applications stay the website wizard (the Finance tab).
