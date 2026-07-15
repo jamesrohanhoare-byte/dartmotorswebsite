@@ -1,10 +1,10 @@
 // Maroon scrolling ticker bar (matches the current site's top strip).
 const PHRASES = [
-  "Get Approved Faster",
+  "Quality Used Cars Since 1975",
   "Built on Trust. Backed by Finance",
   "Drive Now, Pay Your Way",
-  "In-House Finance Made Simple",
-  "No Banks. No Hassle. Just Drive",
+  "Vehicle Finance Available",
+  "Vehicle Finance, Sorted",
 ];
 
 export default function Ticker() {

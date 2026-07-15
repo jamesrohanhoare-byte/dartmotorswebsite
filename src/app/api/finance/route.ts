@@ -8,15 +8,18 @@ import { dealer } from "@/config/dealer";
 export const runtime = "nodejs";
 
 const LABELS: Record<string, string> = {
-  name: "Name", surname: "Surname", dob: "Date of Birth", maritalStatus: "Marital Status",
-  phone: "Phone", email: "Email", address: "Residential Address", timeAtAddress: "Time at Address",
-  employmentStatus: "Employment Status", employerName: "Employer", jobTitle: "Job Title",
-  timeEmployed: "Time Employed", employerContact: "Employer Contact",
-  grossIncome: "Gross Monthly Income", netSalary: "Net Salary", otherIncome: "Other Income",
-  rentBond: "Rent / Bond", existingLoan: "Existing Loan", livingExpenses: "Living Expenses",
-  totalExpenses: "Total Expenses", bankName: "Bank", accountNumber: "Account Number",
-  timeWithBank: "Time With Bank", vehicleOfInterest: "Vehicle of Interest",
-  depositAmount: "Deposit", tradeIn: "Trade-In", monthlyBudget: "Monthly Budget",
+  name: "Full Names", surname: "Surname", idNumber: "SA ID Number", dob: "Date of Birth", maritalStatus: "Married / Single",
+  address: "Home Address", timeAtAddress: "Term at Home Address", homeStatus: "Bonded / Rent", bondBank: "Bond Bank",
+  phone: "Cell Phone", email: "Email",
+  employerName: "Company Name", workAddress: "Work Address", timeEmployed: "Term at Work",
+  employerContact: "Work Tel", jobTitle: "Occupation",
+  grossIncome: "Gross Salary", netSalary: "Nett Salary",
+  expBondRent: "Expense: Bond / Rent", expVehicleFinance: "Expense: Vehicle Finance", expPersonalLoans: "Expense: Personal Loans",
+  expCreditCards: "Expense: Credit Cards", expClothing: "Expense: Clothing / Furniture", expPetrol: "Expense: Petrol",
+  expFood: "Expense: Food", expCellPhone: "Expense: Cell Phone", expInsurance: "Expense: Insurance",
+  bankName: "Bank Name", accountNumber: "Account Number",
+  referenceName: "Reference Name", referencePhone: "Reference Cell",
+  vehicleOfInterest: "Vehicle of Interest", tradeIn: "Trade-In", dealNotes: "Deal / Trade-In Notes",
   source: "Heard via", creditCheckConsent: "Credit Check Consent",
   stock_slug: "Stock ref (car)",
 };

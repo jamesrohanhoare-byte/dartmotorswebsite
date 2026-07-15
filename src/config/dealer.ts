@@ -9,7 +9,7 @@ export const dealer = {
   // Hero — kept verbatim from the live site.
   tagline: "Quality Cars. Trusted Since 1975.",
   heroSub:
-    "Explore a wide range of reliable vehicles at Dart Motors, backed by decades of experience and flexible in-house financing to make ownership simple.",
+    "Explore a wide range of reliable vehicles at Dart Motors, backed by decades of experience and vehicle finance to make ownership simple.",
   founder: "Errol",
   established: 1975,
 
@@ -48,7 +48,7 @@ export const dealer = {
     { value: "50+", label: "Years in business" },
     { value: "2000+", label: "Vehicles sold" },
     { value: "98%", label: "Customer satisfaction" },
-    { value: "In-House", label: "Financing" },
+    { value: "Vehicle", label: "Financing" },
   ],
 
   // Heritage story — condensed verbatim from the About page (the vintage soul).
@@ -70,8 +70,10 @@ export const dealer = {
     { name: "Geovon February", role: "Sales Consultant", photo: "/team/geovan.avif" },
   ],
 
-  // Finance: Dart offers IN-HOUSE financing (a key differentiator vs banks).
-  // The application is our own multi-step wizard (/financing), not an external link.
+  // Finance: Dart processes finance applications itself via our own multi-step
+  // wizard (/financing), not an external link. Public-facing wording is plain
+  // "financing" — the old "in-house" framing attracted unserious/blacklisted
+  // applicants (James, Jul 2026), so it was dropped everywhere customer-facing.
   inHouseFinance: true,
 
   // Real Google reviews (aggregate 3.9 from 175 reviews — used truthfully in

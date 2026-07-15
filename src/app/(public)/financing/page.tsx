@@ -5,13 +5,13 @@ import FinanceWizard from "@/components/site/FinanceWizard";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "In-House Vehicle Finance",
-  description: `Apply for in-house car finance at ${dealer.name}. No banks, no hassle. Fill in the form to see if you qualify.`,
+  title: "Vehicle Finance",
+  description: `Apply for vehicle finance at ${dealer.name}. Fill in the form and our team will assess whether you qualify.`,
   alternates: { canonical: "/financing" },
 };
 
 const faqs = [
-  { q: "How does in-house finance work?", a: "We finance vehicles ourselves rather than sending you to a bank, which means we can approve more people and keep the process simple. You apply once, we assess it, and you drive away sorted." },
+  { q: "How does the finance application work?", a: "You apply once online, our team assesses your application, and if approved you drive away sorted. We handle the whole process professionally from start to finish." },
   { q: "What do I need to apply?", a: "Your ID, proof of income such as recent payslips or bank statements, and proof of residence. The form below captures everything we need to get started." },
   { q: "Will applying affect my credit?", a: "A credit check forms part of the assessment, which you consent to when you submit. We only run it to assess your application." },
 ];
@@ -42,7 +42,7 @@ export default async function FinancingPage({
           <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-medium">Here to help you</span>
           <h1 className="mt-4 text-4xl font-bold md:text-5xl">Financing</h1>
           <p className="mx-auto mt-3 max-w-xl text-white/80">
-            No banks. No hassle. Just drive. Fill in the form below to see if you qualify for our in-house financing.
+            Fill in the form below and our team will assess whether you qualify for vehicle finance. Quick to apply, and we&apos;ll come straight back to you.
           </p>
         </div>
       </section>

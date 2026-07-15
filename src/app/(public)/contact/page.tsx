@@ -29,7 +29,7 @@ export default function ContactPage() {
           <h1 className="text-3xl font-bold leading-tight md:text-4xl">Get in touch</h1>
           <p className="mt-3 max-w-xl text-muted">
             Found a car you like, or have a question? The team is ready to help, with
-            honest advice and flexible in-house finance.
+            honest advice and vehicle finance.
           </p>
 
           <Socials className="mt-5" />

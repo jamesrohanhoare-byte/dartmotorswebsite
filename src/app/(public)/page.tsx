@@ -20,15 +20,15 @@ export const metadata: Metadata = {
 
 const VALUES = [
   { icon: Clock, title: "Trusted Since 1975", body: "Fifty years selling quality used cars, built on honesty and integrity." },
-  { icon: Banknote, title: "In-House Finance", body: "No banks, no hassle. We finance in-house so more people get approved." },
+  { icon: Banknote, title: "Vehicle Finance", body: "Apply online and our team assesses every application, so your finance is done right." },
   { icon: ShieldCheck, title: "Quality, Inspected", body: "Every vehicle is checked and roadworthy before it reaches the floor." },
   { icon: Award, title: "50 Years, One Family", body: "Founded in 1975 and still family-run, trading on the same handshake." },
 ];
 
 const FAQS = [
   {
-    q: "Does Dart Motors offer in-house finance?",
-    a: "Yes. We finance in-house, so there are no banks to deal with and more buyers get approved. As a registered credit provider we handle the whole process under one roof, and you can apply online in a few minutes.",
+    q: "Does Dart Motors offer vehicle finance?",
+    a: "Yes. Apply online in a few minutes and our team assesses your application, then comes straight back to you. As a registered credit provider we handle the process professionally from start to finish.",
   },
   {
     q: "Where is Dart Motors based?",
@@ -172,7 +172,7 @@ export default async function HomePage() {
       {/* ── Reviews ──────────────────────────────────────────── */}
       <Reviews />
 
-      {/* ── In-house finance CTA (photo band) ────────────────── */}
+      {/* ── Finance CTA (photo band) ─────────────────────────── */}
       <section className="relative overflow-hidden py-20 text-white md:py-28">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/ready-to-ride.jpg" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
@@ -180,8 +180,8 @@ export default async function HomePage() {
         <div className="px-page relative mx-auto max-w-2xl text-center">
           <Reveal>
             <p className="eyebrow mb-4 text-accent">Financing</p>
-            <h2 className="text-3xl font-extrabold leading-tight md:text-4xl">In-house finance made simple.</h2>
-            <p className="mx-auto mt-5 max-w-xl leading-relaxed text-white/85">No banks. No hassle. Just drive. We finance in-house, so more people get approved. One quick application and you could be driving sooner.</p>
+            <h2 className="text-3xl font-extrabold leading-tight md:text-4xl">Finance made simple.</h2>
+            <p className="mx-auto mt-5 max-w-xl leading-relaxed text-white/85">Apply online in a few minutes. Our team assesses your application and comes straight back to you. One application and you could be driving sooner.</p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link href="/financing" className="btn-primary rounded-full px-7 py-3.5 text-sm font-semibold">Apply for finance</Link>
               <a href={whatsappLink(`Hi ${dealer.name}, I'd like help finding a car.`)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20">Chat on WhatsApp</a>

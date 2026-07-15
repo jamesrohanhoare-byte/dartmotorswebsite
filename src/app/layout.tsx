@@ -10,8 +10,8 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const title = `${dealer.name} | Trusted Used Cars & In-House Finance in Cape Town`;
-const description = `${dealer.name}. Quality pre-owned cars in ${dealer.seoRegion}, trusted since 1975. In-house financing, no banks. Browse our stock and drive away.`;
+const title = `${dealer.name} | Trusted Used Cars & Vehicle Finance in Cape Town`;
+const description = `${dealer.name}. Quality pre-owned cars in ${dealer.seoRegion}, trusted since 1975. Vehicle financing available. Browse our stock and drive away.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(dealer.siteUrl),
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   keywords: [
     "used cars Cape Town",
     "used cars Woodstock",
-    "in-house car finance Cape Town",
-    "car finance no bank",
+    "car finance Cape Town",
+    "used car finance Cape Town",
     "pre-owned cars Cape Town",
     "Dart Motors",
     ...dealer.featuredBrands.map((b) => `used ${b} for sale Cape Town`),

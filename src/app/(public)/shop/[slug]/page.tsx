@@ -33,7 +33,7 @@ export async function generateMetadata(props: {
   const v = await getStockBySlug(slug);
   if (!v) return { title: "Vehicle not found" };
   const title = `${stockTitle(v)} · ${formatPrice(v.price)}`;
-  const description = `${stockTitle(v)} for sale at ${dealer.name}, ${dealer.seoRegion}. ${formatMileage(v.mileage)}${v.colour ? `, ${v.colour}` : ""}. In-house finance available. Enquire today.`;
+  const description = `${stockTitle(v)} for sale at ${dealer.name}, ${dealer.seoRegion}. ${formatMileage(v.mileage)}${v.colour ? `, ${v.colour}` : ""}. Vehicle finance available. Enquire today.`;
   const image = v.images?.[0];
   return {
     title,
@@ -134,7 +134,7 @@ export default async function VehiclePage(props: {
             <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} />
 
             <Link href={`/financing?vehicle=${encodeURIComponent(title)}&stock=${encodeURIComponent(v.slug)}`} className="block rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-medium transition-colors hover:border-accent hover:text-accent">
-              Apply for in-house finance on this car →
+              Apply for financing on this car →
             </Link>
           </div>
         </div>

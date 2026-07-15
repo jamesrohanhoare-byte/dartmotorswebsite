@@ -7,69 +7,88 @@ import { dealer, whatsappLink } from "@/config/dealer";
 type Field = {
   name: string;
   label: string;
-  type?: "text" | "email" | "tel" | "date" | "number" | "select";
+  type?: "text" | "email" | "tel" | "date" | "number" | "select" | "textarea";
   options?: string[];
   required?: boolean;
   placeholder?: string;
   half?: boolean;
+  inputMode?: "text" | "numeric" | "tel" | "email";
+  maxLength?: number;
+  pattern?: RegExp; // if set, a non-empty value must match to advance
+  hint?: string; // shown in red when the value fails `pattern`
 };
 
+// Mirrors Dart Motors' real paper finance application, kept multi-step so each
+// screen stays short. New fields land in site_finance_applications.details
+// (JSONB) automatically — no migration needed; add a label in /api/finance too.
 const STEPS: { title: string; fields: Field[] }[] = [
   {
     title: "Personal",
     fields: [
-      { name: "name", label: "Name", required: true, half: true },
+      { name: "name", label: "Full Names", required: true, half: true },
       { name: "surname", label: "Surname", required: true, half: true },
+      { name: "idNumber", label: "SA ID Number", required: true, inputMode: "numeric", maxLength: 13, pattern: /^\d{13}$/, hint: "Enter all 13 digits of your SA ID.", placeholder: "13-digit ID number" },
       { name: "dob", label: "Date of Birth", type: "date", required: true, half: true },
-      { name: "maritalStatus", label: "Marital Status", type: "select", options: ["Married", "Single"], required: true, half: true },
+      { name: "maritalStatus", label: "Married / Single", type: "select", options: ["Married", "Single"], required: true, half: true },
     ],
   },
   {
-    title: "Contact",
+    title: "Home & Contact",
     fields: [
-      { name: "phone", label: "Phone Number", type: "tel", required: true, half: true, placeholder: "000 000 0000" },
-      { name: "email", label: "Email", type: "email", required: true, half: true, placeholder: "you@email.com" },
-      { name: "address", label: "Residential Address", required: true, placeholder: "123 Hope St, Cape Town" },
-      { name: "timeAtAddress", label: "Time at Current Address", half: true, placeholder: "2 years" },
+      { name: "address", label: "Home Address", required: true, placeholder: "123 Hope St, Cape Town" },
+      { name: "timeAtAddress", label: "Term at Home Address", half: true, placeholder: "e.g. 2 years" },
+      { name: "homeStatus", label: "Bonded or Rent?", type: "select", options: ["Rent", "Bonded", "Own (paid off)", "Living with family"], required: true, half: true },
+      { name: "bondBank", label: "If bonded, which bank?", half: true, placeholder: "e.g. Standard Bank" },
+      { name: "phone", label: "Cell Phone Number", type: "tel", required: true, half: true, placeholder: "000 000 0000" },
+      { name: "email", label: "Email Address", type: "email", required: true, half: true, placeholder: "you@email.com" },
     ],
   },
   {
     title: "Employment",
     fields: [
-      { name: "employmentStatus", label: "Employment Status", type: "select", options: ["Full-time", "Part-time", "Self-employed", "Contract", "Pensioner", "Unemployed"], required: true, half: true },
-      { name: "employerName", label: "Employer Name", half: true, placeholder: "Company" },
-      { name: "jobTitle", label: "Job Title", half: true, placeholder: "e.g. sales rep" },
-      { name: "timeEmployed", label: "Time Employed", half: true, placeholder: "2 years" },
-      { name: "employerContact", label: "Employer Contact No.", type: "tel", placeholder: "000 000 0000" },
+      { name: "employerName", label: "Company Name", required: true, half: true, placeholder: "Employer" },
+      { name: "workAddress", label: "Work Address", placeholder: "Company address" },
+      { name: "timeEmployed", label: "Term at Work", half: true, placeholder: "e.g. 3 years" },
+      { name: "employerContact", label: "Work Tel Number", type: "tel", half: true, placeholder: "000 000 0000" },
+      { name: "jobTitle", label: "Occupation", half: true, placeholder: "e.g. sales rep" },
     ],
   },
   {
-    title: "Income & Expenses",
+    title: "Income",
     fields: [
-      { name: "grossIncome", label: "Gross Monthly Income", type: "text", required: true, half: true, placeholder: "R30 000" },
-      { name: "netSalary", label: "Net Salary (take home)", type: "text", required: true, half: true, placeholder: "R30 000" },
-      { name: "otherIncome", label: "Other Income (optional)", half: true, placeholder: "Side business" },
-      { name: "rentBond", label: "Monthly Rent / Bond", half: true, placeholder: "R10 000" },
-      { name: "existingLoan", label: "Existing Loan Payment", half: true, placeholder: "R10 000" },
-      { name: "livingExpenses", label: "Living Expenses", half: true, placeholder: "R10 000" },
-      { name: "totalExpenses", label: "Total Monthly Expenses", half: true, placeholder: "R10 000" },
+      { name: "grossIncome", label: "Gross Salary", required: true, half: true, placeholder: "R30 000" },
+      { name: "netSalary", label: "Nett Salary (take home)", required: true, half: true, placeholder: "R25 000" },
+    ],
+  },
+  {
+    title: "Monthly Expenses",
+    fields: [
+      { name: "expBondRent", label: "Bond / Rent", half: true, placeholder: "R0" },
+      { name: "expVehicleFinance", label: "Vehicle Finance", half: true, placeholder: "R0" },
+      { name: "expPersonalLoans", label: "Personal Loans", half: true, placeholder: "R0" },
+      { name: "expCreditCards", label: "Credit Cards", half: true, placeholder: "R0" },
+      { name: "expClothing", label: "Clothing / Furniture", half: true, placeholder: "R0" },
+      { name: "expPetrol", label: "Petrol", half: true, placeholder: "R0" },
+      { name: "expFood", label: "Food", half: true, placeholder: "R0" },
+      { name: "expCellPhone", label: "Cell Phone", half: true, placeholder: "R0" },
+      { name: "expInsurance", label: "Insurance", half: true, placeholder: "R0" },
     ],
   },
   {
     title: "Banking",
     fields: [
-      { name: "bankName", label: "Bank Name", half: true, placeholder: "e.g. FNB, Nedbank" },
+      { name: "bankName", label: "Bank Name", required: true, half: true, placeholder: "e.g. FNB, Nedbank" },
       { name: "accountNumber", label: "Account Number", half: true },
-      { name: "timeWithBank", label: "Time With Bank", half: true, placeholder: "5 years" },
     ],
   },
   {
-    title: "Vehicle",
+    title: "Reference & Deal",
     fields: [
-      { name: "vehicleOfInterest", label: "Vehicle of Interest", required: true, placeholder: "e.g. Toyota Fortuner" },
-      { name: "depositAmount", label: "Deposit Amount", half: true, placeholder: "R30 000" },
-      { name: "tradeIn", label: "Trade-In", type: "select", options: ["No", "Yes"], half: true },
-      { name: "monthlyBudget", label: "Preferred Monthly Budget", half: true, placeholder: "R5 000" },
+      { name: "referenceName", label: "Reference: Name & Surname", required: true, placeholder: "Friend/family not living with you" },
+      { name: "referencePhone", label: "Reference: Cell Number", type: "tel", required: true, half: true, placeholder: "000 000 0000" },
+      { name: "vehicleOfInterest", label: "Vehicle of Interest", required: true, half: true, placeholder: "e.g. Toyota Fortuner" },
+      { name: "tradeIn", label: "Trade-In?", type: "select", options: ["No", "Yes"], half: true },
+      { name: "dealNotes", label: "Any notes on the deal or trade-in", type: "textarea", placeholder: "Optional" },
     ],
   },
 ];
@@ -91,7 +110,12 @@ export default function FinanceWizard({
   const current = STEPS[step];
 
   const stepValid = useMemo(() => {
-    return current.fields.every((f) => !f.required || (data[f.name] ?? "").trim().length > 0);
+    return current.fields.every((f) => {
+      const val = (data[f.name] ?? "").trim();
+      if (f.required && val.length === 0) return false;
+      if (val.length > 0 && f.pattern && !f.pattern.test(val)) return false;
+      return true;
+    });
   }, [current, data]);
 
   function set(name: string, value: string) {
@@ -176,14 +200,27 @@ export default function FinanceWizard({
                 <option value="">Select...</option>
                 {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
+            ) : f.type === "textarea" ? (
+              <textarea
+                value={data[f.name] ?? ""}
+                onChange={(e) => set(f.name, e.target.value)}
+                placeholder={f.placeholder}
+                rows={3}
+                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+              />
             ) : (
               <input
                 type={f.type ?? "text"}
+                inputMode={f.inputMode}
+                maxLength={f.maxLength}
                 value={data[f.name] ?? ""}
                 onChange={(e) => set(f.name, e.target.value)}
                 placeholder={f.placeholder}
                 className="h-12 w-full rounded-lg border border-border bg-surface px-3 text-sm outline-none focus:border-accent"
               />
+            )}
+            {f.pattern && (data[f.name] ?? "").trim().length > 0 && !f.pattern.test((data[f.name] ?? "").trim()) && (
+              <p className="mt-1 text-xs text-maroon">{f.hint ?? "Please check this field."}</p>
             )}
           </div>
         ))}

@@ -7,7 +7,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "About Dart Motors | Trusted Since 1975",
-  description: `${dealer.name} has sold quality used cars in Cape Town since 1975. Built on honesty and integrity, with in-house financing. Read our story.`,
+  description: `${dealer.name} has sold quality used cars in Cape Town since 1975. Built on honesty and integrity, with vehicle financing. Read our story.`,
   alternates: { canonical: "/about" },
 };
 
@@ -21,7 +21,7 @@ export default function AboutPage() {
           <p className="mt-5 text-lg leading-relaxed text-muted">
             Errol opened Dart Motors on Sir Lowry Road in 1975 with a simple promise:
             sell honest cars to honest people. Fifty years and two generations later,
-            that hasn&apos;t changed. We&apos;re still family-run, still finance in-house,
+            that hasn&apos;t changed. We&apos;re still family-run, still here to sort your finance,
             and still shake on every deal.
           </p>
         </div>
