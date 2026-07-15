@@ -46,6 +46,7 @@ const STEPS: { title: string; fields: Field[] }[] = [
   {
     title: "Employment",
     fields: [
+      { name: "employmentStatus", label: "Employment Status", type: "select", options: ["Full-time", "Part-time", "Self-employed", "Contract", "Pensioner", "Unemployed"], half: true },
       { name: "employerName", label: "Company Name", required: true, half: true, placeholder: "Employer" },
       { name: "workAddress", label: "Work Address", placeholder: "Company address" },
       { name: "timeEmployed", label: "Term at Work", half: true, placeholder: "e.g. 3 years" },
@@ -58,6 +59,7 @@ const STEPS: { title: string; fields: Field[] }[] = [
     fields: [
       { name: "grossIncome", label: "Gross Salary", required: true, half: true, placeholder: "R30 000" },
       { name: "netSalary", label: "Nett Salary (take home)", required: true, half: true, placeholder: "R25 000" },
+      { name: "otherIncome", label: "Other Income (optional)", half: true, placeholder: "e.g. side business" },
     ],
   },
   {
@@ -72,6 +74,8 @@ const STEPS: { title: string; fields: Field[] }[] = [
       { name: "expFood", label: "Food", half: true, placeholder: "R0" },
       { name: "expCellPhone", label: "Cell Phone", half: true, placeholder: "R0" },
       { name: "expInsurance", label: "Insurance", half: true, placeholder: "R0" },
+      { name: "livingExpenses", label: "Other Living Expenses", half: true, placeholder: "R0" },
+      { name: "totalExpenses", label: "Total Monthly Expenses", half: true, placeholder: "R0" },
     ],
   },
   {
@@ -79,6 +83,7 @@ const STEPS: { title: string; fields: Field[] }[] = [
     fields: [
       { name: "bankName", label: "Bank Name", required: true, half: true, placeholder: "e.g. FNB, Nedbank" },
       { name: "accountNumber", label: "Account Number", half: true },
+      { name: "timeWithBank", label: "Time With Bank", half: true, placeholder: "e.g. 5 years" },
     ],
   },
   {
@@ -87,6 +92,8 @@ const STEPS: { title: string; fields: Field[] }[] = [
       { name: "referenceName", label: "Reference: Name & Surname", required: true, placeholder: "Friend/family not living with you" },
       { name: "referencePhone", label: "Reference: Cell Number", type: "tel", required: true, half: true, placeholder: "000 000 0000" },
       { name: "vehicleOfInterest", label: "Vehicle of Interest", required: true, half: true, placeholder: "e.g. Toyota Fortuner" },
+      { name: "depositAmount", label: "Deposit Amount", half: true, placeholder: "R30 000" },
+      { name: "monthlyBudget", label: "Preferred Monthly Budget", half: true, placeholder: "R5 000" },
       { name: "tradeIn", label: "Trade-In?", type: "select", options: ["No", "Yes"], half: true },
       { name: "dealNotes", label: "Any notes on the deal or trade-in", type: "textarea", placeholder: "Optional" },
     ],
