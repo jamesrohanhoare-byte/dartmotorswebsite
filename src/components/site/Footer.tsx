@@ -54,13 +54,18 @@ export default function Footer({ logoUrl }: { logoUrl?: string | null }) {
                 <span className="text-white/20">·</span>
               </>
             )}
+            {/* Credit link. Points at the CANONICAL www host on purpose (the bare
+                domain 301s, and a redirect hop muddies link attribution in Search
+                Console). Anchor text is descriptive rather than bare-brand so the
+                link carries topical relevance — deliberately varied per dealer site
+                so the footprint reads natural, not templated. */}
             <a
-              href="https://socialagencies.co.za"
+              href="https://www.socialagencies.co.za/dealerships"
               target="_blank"
               rel="noopener noreferrer"
               className="transition-colors hover:text-white"
             >
-              Powered by Social Agencies
+              Car dealership websites by Social Agencies
             </a>
           </div>
         </div>
