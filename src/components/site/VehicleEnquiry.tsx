@@ -18,14 +18,22 @@ export default function VehicleEnquiry({
   emailSubject: string;
 }) {
   function log(channel: "whatsapp" | "email") {
-    // Fire-and-forget; the link opens normally regardless.
+    // Fire-and-forget; the link opens normally regardless. NOTE: a supabase
+    // query is a LAZY thenable — the request is only sent inside .then().
+    // `void ...` sent nothing, so these clicks were never logged.
     const supabase = createClient();
-    void supabase.from("site_leads").insert({
-      stock_slug: stockSlug,
-      channel,
-      message: title,
-      meta: { page: typeof window !== "undefined" ? window.location.pathname : null },
-    });
+    supabase
+      .from("site_leads")
+      .insert({
+        stock_slug: stockSlug,
+        channel,
+        message: title,
+        meta: { page: typeof window !== "undefined" ? window.location.pathname : null },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   }
 
   return (
