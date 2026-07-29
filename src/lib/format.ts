@@ -16,6 +16,19 @@ export function stockTitle(v: Pick<SiteStock, "year" | "make" | "variant" | "tit
   return [v.year, v.make, v.variant].filter(Boolean).join(" ");
 }
 
+/** How long a car counts as newly listed. */
+export const JUST_IN_DAYS = 30;
+
+/**
+ * Newly listed = first seen by the feed sync within the window. `created_at`
+ * is the first-sync timestamp (the upsert never rewrites it); the July 2026
+ * launch batch was backfilled to 2026-06-01 so pre-site stock never qualifies.
+ */
+export function isJustIn(v: Pick<SiteStock, "created_at">): boolean {
+  if (!v.created_at) return false;
+  return Date.now() - new Date(v.created_at).getTime() < JUST_IN_DAYS * 86_400_000;
+}
+
 /** Split the VMG `extras` blob into a clean feature list. */
 export function stockFeatures(extras: string | null): string[] {
   if (!extras) return [];

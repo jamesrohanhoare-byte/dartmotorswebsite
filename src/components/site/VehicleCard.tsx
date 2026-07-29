@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { SiteStock } from "@/lib/types";
-import { formatPrice, formatMileage, stockTitle } from "@/lib/format";
+import { formatPrice, formatMileage, stockTitle, isJustIn } from "@/lib/format";
 import { cdnImg } from "@/lib/img";
 
 // Stock card. Images are hotlinked straight from VMG's S3 via a plain <img>
@@ -39,6 +39,10 @@ export default function VehicleCard({
         ) : vehicle.featured ? (
           <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-[0.65rem] font-medium uppercase tracking-wider text-white">
             Featured
+          </span>
+        ) : isJustIn(vehicle) ? (
+          <span className="absolute left-3 top-3 rounded-full bg-foreground px-3 py-1 text-[0.65rem] font-medium uppercase tracking-wider text-background">
+            Just In
           </span>
         ) : null}
       </div>
