@@ -47,11 +47,21 @@ export default function StockGrid({ stock, makes }: { stock: SiteStock[]; makes:
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const bandDef = PRICE_BANDS.find((b) => b.label === band);
+
+    // Stock code lookup, deliberately left out of the placeholder: staff know
+    // the codes off by heart, customers have no way to learn them. "417",
+    // "#417" and "stock-417" all pull up that one car. Codes run in the
+    // hundreds and never overlap a model year, so a customer searching "2019"
+    // cannot stumble into a code by accident.
+    const codeQuery = q.replace(/^(?:#|stock[-\s]?)/, "");
+    const isCode = /^\d+$/.test(codeQuery);
+
     const list = stock.filter((v) => {
       const matchMake = make === "All" || v.make === make;
       const p = v.price ?? 0;
       const matchBand = !bandDef || (p >= bandDef.min && p < bandDef.max);
-      const matchQuery = !q || stockTitle(v).toLowerCase().includes(q);
+      const matchCode = isCode && v.stock_id === Number(codeQuery);
+      const matchQuery = !q || matchCode || stockTitle(v).toLowerCase().includes(q);
       return matchMake && matchBand && matchQuery;
     });
     const priceAsc = (v: SiteStock) => v.price ?? Number.MAX_SAFE_INTEGER;
