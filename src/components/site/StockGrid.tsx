@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import type { SiteStock } from "@/lib/types";
-import { stockTitle } from "@/lib/format";
+import { stockTitle, JUST_IN_DAYS } from "@/lib/format";
 import VehicleCard from "@/components/site/VehicleCard";
 
 type Sort = "featured" | "price-desc" | "price-asc" | "year-desc" | "km-asc";
@@ -38,11 +38,24 @@ function SelectField({
   );
 }
 
-export default function StockGrid({ stock, makes }: { stock: SiteStock[]; makes: string[] }) {
+export default function StockGrid({
+  stock,
+  makes,
+  justIn = [],
+}: {
+  stock: SiteStock[];
+  makes: string[];
+  justIn?: SiteStock[];
+}) {
   const [query, setQuery] = useState("");
   const [make, setMake] = useState("All");
   const [band, setBand] = useState("All");
   const [sort, setSort] = useState<Sort>("featured");
+
+  // While the visitor is narrowing things down, the Just In strip is hidden.
+  // It does not respond to the filters, so leaving it on screen made a search
+  // look like it had done nothing: the top of the page never changed.
+  const isFiltering = query.trim() !== "" || make !== "All" || band !== "All";
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -50,17 +63,21 @@ export default function StockGrid({ stock, makes }: { stock: SiteStock[]; makes:
 
     // Stock code lookup, deliberately left out of the placeholder: staff know
     // the codes off by heart, customers have no way to learn them. "417",
-    // "#417" and "stock-417" all pull up that one car. Codes run in the
-    // hundreds and never overlap a model year, so a customer searching "2019"
-    // cannot stumble into a code by accident.
-    const codeQuery = q.replace(/^(?:#|stock[-\s]?)/, "");
+    // "#417" and "stock-417" all pull up that one car.
+    //
+    // The feed carries TWO numbers per car and staff quote either one: the
+    // stock number the site uses in its URLs (stock_id) and the dealer's own
+    // reference (reference_id). Both match. Neither range overlaps a model
+    // year, so a customer searching "2019" cannot stumble into a code.
+    const codeQuery = q.replace(/^(?:#|stock[-\s]?|ref[-\s]?)/, "");
     const isCode = /^\d+$/.test(codeQuery);
+    const code = Number(codeQuery);
 
     const list = stock.filter((v) => {
       const matchMake = make === "All" || v.make === make;
       const p = v.price ?? 0;
       const matchBand = !bandDef || (p >= bandDef.min && p < bandDef.max);
-      const matchCode = isCode && v.stock_id === Number(codeQuery);
+      const matchCode = isCode && (v.stock_id === code || v.reference_id === code);
       const matchQuery = !q || matchCode || stockTitle(v).toLowerCase().includes(q);
       return matchMake && matchBand && matchQuery;
     });
@@ -114,6 +131,26 @@ export default function StockGrid({ stock, makes }: { stock: SiteStock[]; makes:
           </SelectField>
         </div>
       </div>
+
+      {!isFiltering && justIn.length > 0 && (
+        <section aria-labelledby="just-in" className="mb-10 mt-6 md:mb-16 md:mt-8">
+          <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 id="just-in" className="text-xl font-bold tracking-tight md:text-2xl">
+              Just In
+            </h2>
+            <p className="text-sm text-muted">Listed in the last {JUST_IN_DAYS} days</p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {justIn.map((v) => (
+              <VehicleCard key={v.id} vehicle={v} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!isFiltering && justIn.length > 0 && (
+        <h2 className="text-xl font-bold tracking-tight md:text-2xl">All Stock</h2>
+      )}
 
       <p className="py-3 text-sm text-muted sm:py-6">
         {filtered.length} {filtered.length === 1 ? "vehicle" : "vehicles"} available

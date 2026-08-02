@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { getAvailableStock } from "@/lib/queries";
 import { dealer } from "@/config/dealer";
-import { isJustIn, JUST_IN_DAYS } from "@/lib/format";
+import { isJustIn } from "@/lib/format";
 import StockGrid from "@/components/site/StockGrid";
-import VehicleCard from "@/components/site/VehicleCard";
 
 export const revalidate = 3600;
 
@@ -32,26 +31,11 @@ export default async function ShopPage() {
         </p>
       </header>
 
-      {justIn.length > 0 && (
-        <section aria-labelledby="just-in" className="mb-10 md:mb-16">
-          <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 id="just-in" className="text-xl font-bold tracking-tight md:text-2xl">
-              Just In
-            </h2>
-            <p className="text-sm text-muted">Listed in the last {JUST_IN_DAYS} days</p>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {justIn.map((v) => (
-              <VehicleCard key={v.id} vehicle={v} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {justIn.length > 0 && (
-        <h2 className="mb-4 text-xl font-bold tracking-tight md:text-2xl">All Stock</h2>
-      )}
-      <StockGrid stock={stock} makes={makes} />
+      {/* Search and filters come FIRST, above Just In. They used to sit below
+          it, so a search left the top of the page unchanged and looked like it
+          had found nothing. StockGrid now owns the Just In strip and drops it
+          the moment the visitor starts filtering. */}
+      <StockGrid stock={stock} makes={makes} justIn={justIn} />
     </div>
   );
 }
