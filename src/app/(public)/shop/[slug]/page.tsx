@@ -33,7 +33,20 @@ export async function generateMetadata(props: {
   const v = await getStockBySlug(slug);
   if (!v) return { title: "Vehicle not found" };
   const title = `${stockTitle(v)} · ${formatPrice(v.price)}`;
-  const description = `${stockTitle(v)} for sale at ${dealer.name}, ${dealer.seoRegion}. ${formatMileage(v.mileage)}${v.colour ? `, ${v.colour}` : ""}. Vehicle finance available. Enquire today.`;
+  // A manual listing has no mileage or colour to describe it, so it leads with its
+  // own headline specs instead of claiming "n/a km" and offering vehicle finance.
+  const detail =
+    v.source === "manual"
+      ? (v.specs ?? []).slice(0, 2).map((s) => `${s.label} ${s.value}`).join(", ")
+      : `${formatMileage(v.mileage)}${v.colour ? `, ${v.colour}` : ""}`;
+  const description = [
+    `${stockTitle(v)} for sale at ${dealer.name}, ${dealer.seoRegion}.`,
+    detail ? `${detail}.` : "",
+    v.show_finance !== false ? "Vehicle finance available." : "",
+    "Enquire today.",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const image = v.images?.[0];
   return {
     title,
@@ -57,37 +70,69 @@ export default async function VehiclePage(props: {
   const features = stockFeatures(v.extras);
   const related = await getRelatedStock(v.slug, 8);
 
-  // Spec grid — only whatever the feed actually gives us for this car.
-  const specs: { label: string; value: string }[] = [
-    ...(v.year ? [{ label: "Year", value: String(v.year) }] : []),
-    { label: "Mileage", value: formatMileage(v.mileage) },
-    ...(transmission ? [{ label: "Transmission", value: transmission }] : []),
-    ...(v.colour ? [{ label: "Colour", value: v.colour }] : []),
-    ...(v.condition ? [{ label: "Condition", value: v.condition }] : []),
-    ...(v.new_used ? [{ label: "Type", value: v.new_used }] : []),
-  ];
+  // A manual listing (a trailer, say) carries its own labelled specs, because the
+  // car fields do not describe it — a spec grid reading "Mileage: n/a" looks broken.
+  const isManual = v.source === "manual";
+  // Defaults to on. Written as "not false" so the CTA survives the window between
+  // this code deploying and migration 00050 landing, when the column reads undefined.
+  const showFinance = v.show_finance !== false;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Car",
-    name: title,
-    url: `${dealer.siteUrl}/shop/${v.slug}`,
-    brand: { "@type": "Brand", name: v.make },
-    ...(v.variant ? { model: v.variant } : {}),
-    ...(v.year ? { vehicleModelDate: String(v.year) } : {}),
-    ...(v.mileage ? { mileageFromOdometer: { "@type": "QuantitativeValue", value: v.mileage, unitCode: "KMT" } } : {}),
-    ...(transmission ? { vehicleTransmission: transmission } : {}),
-    ...(v.colour ? { color: v.colour } : {}),
-    image: v.images, // absolute S3 URLs
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "ZAR",
-      ...(v.price ? { price: v.price } : {}),
-      availability: "https://schema.org/InStock",
-      itemCondition: "https://schema.org/UsedCondition",
-      seller: { "@type": "AutoDealer", name: dealer.name },
-    },
+  // Spec grid — only whatever the feed actually gives us for this car.
+  const specs: { label: string; value: string }[] = isManual
+    ? (v.specs ?? []).filter((s) => s?.label && s?.value)
+    : [
+        ...(v.year ? [{ label: "Year", value: String(v.year) }] : []),
+        { label: "Mileage", value: formatMileage(v.mileage) },
+        ...(transmission ? [{ label: "Transmission", value: transmission }] : []),
+        ...(v.colour ? [{ label: "Colour", value: v.colour }] : []),
+        ...(v.condition ? [{ label: "Condition", value: v.condition }] : []),
+        ...(v.new_used ? [{ label: "Type", value: v.new_used }] : []),
+      ];
+
+  const offer = {
+    "@type": "Offer",
+    priceCurrency: "ZAR",
+    ...(v.price ? { price: v.price } : {}),
+    availability: "https://schema.org/InStock",
+    itemCondition: "https://schema.org/UsedCondition",
+    seller: { "@type": "AutoDealer", name: dealer.name },
   };
+
+  // Manual listings are described as Products, not Cars. A Car with no make, no
+  // model and no odometer reading is invalid structured data and gets rejected.
+  const jsonLd = isManual
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: title,
+        url: `${dealer.siteUrl}/shop/${v.slug}`,
+        ...(v.description ? { description: v.description } : {}),
+        image: v.images,
+        ...(specs.length
+          ? {
+              additionalProperty: specs.map((s) => ({
+                "@type": "PropertyValue",
+                name: s.label,
+                value: s.value,
+              })),
+            }
+          : {}),
+        offers: offer,
+      }
+    : {
+        "@context": "https://schema.org",
+        "@type": "Car",
+        name: title,
+        url: `${dealer.siteUrl}/shop/${v.slug}`,
+        brand: { "@type": "Brand", name: v.make },
+        ...(v.variant ? { model: v.variant } : {}),
+        ...(v.year ? { vehicleModelDate: String(v.year) } : {}),
+        ...(v.mileage ? { mileageFromOdometer: { "@type": "QuantitativeValue", value: v.mileage, unitCode: "KMT" } } : {}),
+        ...(transmission ? { vehicleTransmission: transmission } : {}),
+        ...(v.colour ? { color: v.colour } : {}),
+        image: v.images, // absolute S3 URLs
+        offers: offer,
+      };
 
   return (
     <div className="px-page mx-auto max-w-[1400px] py-8 md:py-12">
@@ -133,9 +178,13 @@ export default async function VehiclePage(props: {
             {/* Existing quick channels (WhatsApp / Email / Call), still logged per-car. */}
             <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} />
 
-            <Link href={`/financing?vehicle=${encodeURIComponent(title)}&stock=${encodeURIComponent(v.slug)}`} className="block rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-medium transition-colors hover:border-accent hover:text-accent">
-              Apply for financing on this car →
-            </Link>
+            {/* Hidden per-listing for things a finance house will not fund. A dead-end
+                application wastes the customer's time and the dealer's. */}
+            {showFinance && (
+              <Link href={`/financing?vehicle=${encodeURIComponent(title)}&stock=${encodeURIComponent(v.slug)}`} className="block rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-medium transition-colors hover:border-accent hover:text-accent">
+                Apply for financing on this car →
+              </Link>
+            )}
           </div>
         </div>
 

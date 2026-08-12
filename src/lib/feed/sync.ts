@@ -51,6 +51,9 @@ export async function syncStock(): Promise<SyncResult> {
       date_updated: toISO(v.dateUpdated),
       images: v.images,
       status: "available" as const,
+      // Explicit rather than relying on the column default: if a slug ever collides
+      // with a hand-made row, the feed reclaims ownership of it, which is correct.
+      source: "feed" as const,
       // Featured is driven by VMG: any car set to "Excellent" condition in VMG
       // is automatically featured on the site. Dealer controls it from VMG Smart.
       featured: /excellent/i.test(v.condition || ""),
@@ -65,11 +68,17 @@ export async function syncStock(): Promise<SyncResult> {
   if (upErr) throw new Error(`site_stock upsert failed: ${upErr.message}`);
 
   // Soft-delete stale: available rows whose slug is no longer in the feed.
+  //
+  // Scoped to source='feed' — the sync only reconciles what the feed owns. Manual
+  // listings (a trailer, a bakkie canopy, anything created in Dartbooks) are not in
+  // the VMG feed by definition, so without this filter every sync would flip them to
+  // 'sold' and the page would die silently within hours. See migration 00050.
   const feedSlugs = new Set(rows.map((r) => r.slug));
   const { data: liveRows, error: readErr } = await supabase
     .from("site_stock")
     .select("slug")
-    .eq("status", "available");
+    .eq("status", "available")
+    .eq("source", "feed");
   if (readErr) throw new Error(`site_stock read failed: ${readErr.message}`);
 
   const staleSlugs = (liveRows ?? [])

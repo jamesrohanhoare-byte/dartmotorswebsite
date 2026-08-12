@@ -3,6 +3,16 @@
 
 export type StockStatus = "available" | "sold";
 
+/** Where a row came from. `manual` rows are created in Dartbooks and the feed sync
+ *  must never reconcile them (migration 00050 / docs/manual-listings-design.md). */
+export type StockSource = "feed" | "manual";
+
+/** One labelled spec row on a manual listing, e.g. { label: "Total length", value: "6.2 m" }. */
+export interface StockSpec {
+  label: string;
+  value: string;
+}
+
 /** One vehicle from the VMG feed, as stored in `site_stock`. */
 export interface SiteStock {
   id: string;
@@ -26,6 +36,11 @@ export interface SiteStock {
   featured: boolean;
   synced_at: string;
   created_at: string;
+  source: StockSource;
+  /** Manual listings only: replaces the car spec grid (a trailer has no mileage). */
+  specs: StockSpec[] | null;
+  /** Whether the "Apply for financing" CTA renders. Off for a trailer. */
+  show_finance: boolean;
 }
 
 export type LeadChannel = "form" | "whatsapp" | "email" | "newsletter";

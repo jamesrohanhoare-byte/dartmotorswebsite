@@ -15,6 +15,16 @@ export default function VehicleCard({
   const lead = vehicle.images?.[0];
   const title = stockTitle(vehicle);
 
+  // Manual listings have no odometer. Rather than a card reading "n/a km", they show
+  // their own first spec (e.g. "6.2 m long") in the same slot.
+  const headlineSpec =
+    vehicle.source === "manual" ? vehicle.specs?.find((s) => s?.label && s?.value) : undefined;
+  const metric = headlineSpec
+    ? headlineSpec.value
+    : vehicle.source === "manual"
+      ? null
+      : formatMileage(vehicle.mileage);
+
   const content = (
     <>
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-2">
@@ -54,7 +64,7 @@ export default function VehicleCard({
           {title}
         </h3>
         <div className="mt-3 flex items-center gap-2 text-xs text-muted">
-          <span className="rounded-md bg-surface-2 px-2 py-1">{formatMileage(vehicle.mileage)}</span>
+          {metric && <span className="rounded-md bg-surface-2 px-2 py-1">{metric}</span>}
           {vehicle.condition && <span>{vehicle.condition}</span>}
         </div>
       </div>
