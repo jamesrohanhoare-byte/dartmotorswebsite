@@ -123,10 +123,75 @@ check("state_of_vehicle is upper-case USED", () =>
   assert.equal(row.state_of_vehicle, "USED"));
 check("a new car maps to NEW", () =>
   assert.equal(toFeedRow({ ...car, new_used: "New" }).state_of_vehicle, "NEW"));
-check("availability is available for a live car", () =>
-  assert.equal(row.availability, "available"));
-check("availability is not_available for a sold car", () =>
-  assert.equal(toFeedRow({ ...car, status: "sold" }).availability, "not_available"));
+check("availability is AVAILABLE (uppercase enum) for a live car", () =>
+  assert.equal(row.availability, "AVAILABLE"));
+check("availability is NOT_AVAILABLE for a sold car", () =>
+  assert.equal(toFeedRow({ ...car, status: "sold" }).availability, "NOT_AVAILABLE"));
+check("condition maps to Meta's quality enum", () => {
+  assert.equal(toFeedRow({ ...car, condition: "Excellent" }).condition, "EXCELLENT");
+  assert.equal(toFeedRow({ ...car, condition: "Good" }).condition, "GOOD");
+  assert.equal(toFeedRow({ ...car, condition: "Needs Attention" }).condition, "FAIR");
+});
+check("condition never renders blank (it is a required field)", () =>
+  assert.equal(toFeedRow({ ...car, condition: null }).condition, "GOOD"));
+
+// body_style — required by Meta, absent from VMG, so derived. Every case below
+// is a REAL variant string from Dart's live stock.
+console.log("\nbody_style (required; derived because VMG does not send it)");
+const bodyOf = (variant) => toFeedRow({ ...car, variant, title: null }).body_style;
+check("bakkies read as TRUCK from the P/U marker", () => {
+  assert.equal(bodyOf("RANGER 2.2TDCi XLS 4X4 P/U D/C"), "TRUCK");
+  assert.equal(bodyOf("HILUX 3.0D-4D LEGEND 45 XTRA CAB P/U"), "TRUCK");
+  assert.equal(bodyOf("KB 250 D-TEQ HO LE PU D/C"), "TRUCK");
+  assert.equal(bodyOf("AMAROK 2.0 BiTDi HIGHLINE 132KW 4MOT A/T D/C P/U"), "TRUCK");
+  assert.equal(bodyOf("NP200 1.6  A/C SAFETY PACK P/U S/C"), "TRUCK");
+});
+check("a P/U marker beats the model name (CORSA UTILITY is a bakkie, not a hatch)", () =>
+  assert.equal(bodyOf("CORSA UTILITY 1.4 CLUB P/U S/C"), "TRUCK"));
+check("a plain CORSA is still a hatchback", () =>
+  assert.equal(bodyOf("CORSA 1.4 ESSENTIA"), "HATCHBACK"));
+check("people carriers read as MINIVAN", () => {
+  assert.equal(bodyOf("MICROBUS 2.5i"), "MINIVAN");
+  assert.equal(bodyOf("T5 KOMBI 2.0 TDi (75KW) BASE (TRENDLINE)"), "MINIVAN");
+  assert.equal(bodyOf("T5 CARAVELLE 3.2 4motion"), "MINIVAN");
+});
+check("panel vans fall back to OTHER (no confirmed VAN value)", () => {
+  assert.equal(bodyOf("CADDY 2.0TDi (81KW) F/C P/V"), "OTHER");
+  assert.equal(bodyOf("T5 C/BUS 2.0 TDi LWB 103KW DSG F/C P/V"), "MINIVAN");
+});
+check("SUVs resolve from the model table", () => {
+  assert.equal(bodyOf("FORTUNER 2.5D-4D RB A/T"), "SUV");
+  assert.equal(bodyOf("PAJERO 3.2 Di - Dc GLX  A/T"), "SUV");
+  assert.equal(bodyOf("QASHQAI 1.5 DCi ACENTA"), "SUV");
+  assert.equal(bodyOf("X TRAIL 2.0 VISIA"), "SUV");
+  assert.equal(bodyOf("RAV4 2.2D VX A/T"), "SUV");
+  assert.equal(bodyOf("TIGUAN 2.0 TDi B/MOT TREND-FUN"), "SUV");
+});
+check("hatchbacks resolve from the model table", () => {
+  assert.equal(bodyOf("GOLF VII 1.0 TSI COMFORTLINE"), "HATCHBACK");
+  assert.equal(bodyOf("POLO GP 1.2 TSI COMFORTLINE (66KW)"), "HATCHBACK");
+  assert.equal(bodyOf("118i A/T (E87)"), "HATCHBACK");
+  assert.equal(bodyOf("ATOS 1.1 MOTION"), "HATCHBACK");
+});
+check("sedans resolve from the model table", () => {
+  assert.equal(bodyOf("C180 AVANTGARDE A/T"), "SEDAN");
+  assert.equal(bodyOf("SENTRA 140"), "SEDAN");
+});
+check("an unknown model returns OTHER rather than a guess", () =>
+  assert.equal(bodyOf("ZZZ 9000 SOMETHING"), "OTHER"));
+check("model names run into the engine size still match (VMG spacing is inconsistent)", () => {
+  assert.equal(bodyOf("RIO1.4 (4DR) A/T"), "HATCHBACK"); // no space after RIO
+  assert.equal(bodyOf("KB300D-TEQ LX P/U D/C"), "TRUCK");
+});
+check("letter+digit model names are not broken by the spacing fix", () => {
+  assert.equal(bodyOf("C220 BLUETEC A/T"), "SEDAN");
+  assert.equal(bodyOf("118i A/T (E87)"), "HATCHBACK");
+});
+check("body_style is NEVER empty (this is what rejected all 48 cars)", () => {
+  for (const variant of [null, "", "MYSTERY 1.0", "PRADO 3.0TD TX"]) {
+    assert.ok(bodyOf(variant).length > 0, `empty body_style for ${variant}`);
+  }
+});
 check("transmission is read from the extras list, not the variant regex", () =>
   assert.equal(row.transmission, "AUTOMATIC"));
 check("transmission still falls back to the variant when extras is silent", () =>

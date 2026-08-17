@@ -32,6 +32,7 @@ export const META_COLUMNS: string[] = [
   "price",
   "exterior_color",
   "state_of_vehicle",
+  "body_style",
   "condition",
   "transmission",
   "vin",
@@ -83,6 +84,81 @@ function metaTransmission(v: SiteStock): string {
 /** VMG's newUsed is free text ("Used", "used", "New"); Meta wants NEW/USED. */
 function metaStateOfVehicle(newUsed: string | null): string {
   return /new/i.test(newUsed ?? "") ? "NEW" : "USED";
+}
+
+/**
+ * VMG's condition is free text ("Good", "Excellent", "Needs Attention").
+ * Meta's vehicle `condition` is a quality rating: EXCELLENT / GOOD / FAIR / POOR.
+ * The two happen to line up almost exactly, which is lucky, not designed.
+ */
+function metaCondition(condition: string | null): string {
+  const c = (condition ?? "").toLowerCase();
+  if (/excellent/.test(c)) return "EXCELLENT";
+  if (/good/.test(c)) return "GOOD";
+  if (/fair|needs attention/.test(c)) return "FAIR";
+  if (/poor|bad/.test(c)) return "POOR";
+  return "GOOD"; // VMG's most common value; never leave a required field blank
+}
+
+/**
+ * body_style — REQUIRED by Meta, and VMG does not publish it.
+ *
+ * Learned the hard way: the first upload rejected all 48 cars with
+ * "body_style is required". So it has to be derived.
+ *
+ * Two-stage on purpose:
+ *  1. STRUCTURAL signals in the variant string. These are SA trade notation and
+ *     are reliable: "P/U" is a bakkie, "P/V" a panel van, "KOMBI"/"CARAVELLE"/
+ *     "MICROBUS" a people carrier. Checked FIRST because they beat model names
+ *     ("CORSA UTILITY ... P/U" is a bakkie, a plain "CORSA" is a hatch).
+ *  2. An EXPLICIT MODEL TABLE for everything else. Body type for a car cannot be
+ *     inferred from its name by pattern — you either know that a Fortuner is an
+ *     SUV and a Polo is a hatch, or you do not. A clever regex here would just be
+ *     confidently wrong, so this is a maintained list instead.
+ *
+ * Anything unmatched returns OTHER rather than a guess. OTHER is a valid value
+ * and a wrong body style is worse than a vague one: it puts the car in front of
+ * the wrong buyer.
+ *
+ * ⚠️ Values restricted to ones confirmed in Meta's own vehicle categories
+ * (Convertible, Coupe, Hatchback, Minivan, Sedan, SUV, Truck, Other). Do NOT add
+ * values like VAN, WAGON or CROSSOVER without confirming them against a real
+ * upload — an unaccepted value rejects the whole row.
+ */
+const BODY_STRUCTURAL: [RegExp, string][] = [
+  [/\bP\/?U\b|\bPU\b|\bBAKKIE\b/i, "TRUCK"], // pickup / bakkie
+  [/\bKOMBI\b|\bCARAVELLE\b|\bMICROBUS\b|\bC\/BUS\b/i, "MINIVAN"], // people carrier
+  [/\bP\/V\b|\bPANEL\s*VAN\b/i, "OTHER"], // panel van: no confirmed VAN value
+  [/\bCABRIOLET\b|\bCONVERTIBLE\b|\bROADSTER\b|\bCABRIO\b/i, "CONVERTIBLE"],
+  [/\bCOUPE\b|\bCOUPÉ\b/i, "COUPE"],
+];
+
+const BODY_BY_MODEL: [RegExp, string][] = [
+  // SUVs
+  [/\bECOSPORT\b|\bKUGA\b|\bSPORTAGE\b|\bPAJERO\b|\bJUKE\b|\bQASHQAI\b/i, "SUV"],
+  [/\bX[\s-]?TRAIL\b|\bFORTUNER\b|\bPRADO\b|\bRAV\s?4\b|\bTIGUAN\b/i, "SUV"],
+  [/\bTUCSON\b|\bCRETA\b|\bDUSTER\b|\bCAPTUR\b|\bEVOQUE\b|\bDISCOVERY\b/i, "SUV"],
+  [/\bX[1-7]\b|\bQ[2-8]\b|\bGLA\b|\bGLC\b|\bGLE\b|\bTOUAREG\b|\bCR-?V\b/i, "SUV"],
+  // Hatchbacks
+  [/\bJAZZ\b|\bATOS\b|\bi10\b|\bi20\b|\bALTO\b|\bCELERIO\b|\bSWIFT\b/i, "HATCHBACK"],
+  [/\bGOLF\b|\bPOLO\b|\bUP!?\b|\b207\b|\b208\b|\bCOOPER\b|\bRIO\b/i, "HATCHBACK"],
+  [/\bFIESTA\b|\bMICRA\b|\bYARIS\b|\bCORSA\b|\bETIOS\b|\b118i\b|\b120i\b/i, "HATCHBACK"],
+  // Sedans
+  [/\bC1[0-9]{2}\b|\bC2[0-9]{2}\b|\bSENTRA\b|\bJETTA\b|\bCOROLLA\b/i, "SEDAN"],
+  [/\bCRUZE\b|\bACCENT\b|\bELANTRA\b|\bALMERA\b|\bE[0-9]{3}\b|\bA[3-6]\b/i, "SEDAN"],
+];
+
+function metaBodyStyle(v: SiteStock): string {
+  const text = `${v.variant ?? ""} ${v.title ?? ""}`;
+  // VMG is inconsistent about spacing: "RIO1.4 (4DR)" and "KB300D-TEQ" run the
+  // model straight into the engine size, so \bRIO\b never matches. Testing a
+  // letter/digit-split copy as well catches those without breaking model names
+  // that ARE letter+digit, like C220 or X5 (which still match the raw text).
+  const spaced = text.replace(/([A-Za-z])(\d)/g, "$1 $2");
+  const hit = (re: RegExp) => re.test(text) || re.test(spaced);
+  for (const [re, body] of BODY_STRUCTURAL) if (hit(re)) return body;
+  for (const [re, body] of BODY_BY_MODEL) if (hit(re)) return body;
+  return "OTHER";
 }
 
 /**
@@ -144,13 +220,15 @@ export function toFeedRow(v: SiteStock): Record<string, string> {
     price: `${v.price} ZAR`,
     exterior_color: v.colour ?? "",
     state_of_vehicle: metaStateOfVehicle(v.new_used),
-    condition: v.condition ?? "",
+    body_style: metaBodyStyle(v),
+    condition: metaCondition(v.condition),
     transmission: metaTransmission(v),
     // Optional until migration 00051 lands and the sync starts capturing it.
     // Reads as "" rather than "undefined" in the meantime, so the feed is valid
     // either way and simply gets richer once the column exists.
     vin: v.vin ?? "",
-    availability: v.status === "sold" ? "not_available" : "available",
+    // Uppercase: Meta's vehicle availability enum is AVAILABLE / NOT_AVAILABLE.
+    availability: v.status === "sold" ? "NOT_AVAILABLE" : "AVAILABLE",
     address: JSON.stringify({
       addr1: dealer.address.line1,
       city: dealer.address.city,
