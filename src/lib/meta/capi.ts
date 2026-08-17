@@ -118,10 +118,22 @@ function hasUsableIdentity(ud: Record<string, unknown>): boolean {
  * lead is the business, the analytics are not.
  */
 export async function sendCapiEvent(e: CapiEvent): Promise<boolean> {
-  if (!PIXEL_ID || !TOKEN) return false;
+  // Logged, not silent. A disabled tracking integration looks identical to a
+  // working one from the outside, so without this line the only way to discover
+  // a missing token is to notice conversions are down weeks later.
+  if (!PIXEL_ID || !TOKEN) {
+    console.warn(
+      `[capi] DISABLED — ${!PIXEL_ID ? "NEXT_PUBLIC_META_PIXEL_ID" : "META_CAPI_TOKEN"} is not set. ` +
+        `Event "${e.eventName}" was not sent server-side.`,
+    );
+    return false;
+  }
 
   const userData = buildUserData(e);
-  if (!hasUsableIdentity(userData)) return false;
+  if (!hasUsableIdentity(userData)) {
+    console.warn(`[capi] skipped "${e.eventName}": no usable identifiers (Meta would reject it)`);
+    return false;
+  }
 
   const customData: Record<string, unknown> = {};
   if (e.vehicle) {
