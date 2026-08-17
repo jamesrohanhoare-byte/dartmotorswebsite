@@ -58,10 +58,28 @@ export function metaCookies(): { fbp?: string; fbc?: string } {
  * same function that writes vehicle_id into the feed — which is what guarantees
  * the join actually resolves.
  */
+/**
+ * Which on-page action produced a Lead. All three currently report as one `Lead`
+ * because splitting them would leave each too sparse for Meta to learn from, but
+ * they are NOT equal quality:
+ *   form     — a confirmed lead; name/email/phone captured, chaseable either way
+ *   whatsapp — intent only; plenty of people open the chat and never hit send
+ *   email    — weakest; opens a mail client, most abandon there
+ * Tagging them now means that in a month we can narrow the custom conversion to
+ * whichever actually sells cars, with a rule change and no code. Without the
+ * tag that comparison is impossible after the fact, because the data is gone.
+ */
+export type LeadChannel = "form" | "whatsapp" | "email";
+
 export function trackVehicle(
   event: "ViewContent" | "Lead" | "Search" | "InitiateCheckout",
   vehicleId: string,
-  extra?: { value?: number | null; name?: string; eventId?: string },
+  extra?: {
+    value?: number | null;
+    name?: string;
+    eventId?: string;
+    leadChannel?: LeadChannel;
+  },
 ): void {
   track(
     event,
@@ -71,6 +89,7 @@ export function trackVehicle(
       currency: "ZAR",
       ...(extra?.value ? { value: extra.value } : {}),
       ...(extra?.name ? { content_name: extra.name } : {}),
+      ...(extra?.leadChannel ? { lead_channel: extra.leadChannel } : {}),
     },
     extra?.eventId,
   );

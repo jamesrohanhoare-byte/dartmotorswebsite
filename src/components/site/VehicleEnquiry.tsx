@@ -35,7 +35,7 @@ export default function VehicleEnquiry({
     // exists to forward.
     const eventId = newEventId();
     const { fbp, fbc } = metaCookies();
-    trackVehicle("Lead", vehicleId, { value: price, name: title, eventId });
+    trackVehicle("Lead", vehicleId, { value: price, name: title, eventId, leadChannel: channel });
     void fetch("/api/meta-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,6 +46,7 @@ export default function VehicleEnquiry({
         vehicle_id: stockId,
         vehicle_price: price ?? undefined,
         vehicle_title: title,
+        lead_channel: channel,
         page: typeof window !== "undefined" ? window.location.pathname : undefined,
         fbp,
         fbc,

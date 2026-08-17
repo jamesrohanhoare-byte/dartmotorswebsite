@@ -92,6 +92,9 @@ export async function POST(req: Request) {
       vehicle: body.vehicle_id
         ? { stock_id: body.vehicle_id, price: body.vehicle_price ?? null, title: body.message ?? null }
         : undefined,
+      // The interest form is always the "form" channel; the WhatsApp and email
+      // buttons go through /api/meta-event instead.
+      leadChannel: "form",
       clientIpAddress: clientIpFrom(req.headers),
       clientUserAgent: req.headers.get("user-agent") ?? undefined,
       fbp: body.fbp,

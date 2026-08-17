@@ -55,6 +55,8 @@ export type CapiEvent = {
   identity?: CapiIdentity;
   /** Vehicle the event is about — drives content_ids, which joins to the catalog. */
   vehicle?: Pick<SiteStock, "stock_id"> & { price?: number | null; title?: string | null };
+  /** form | whatsapp | email — must mirror the browser event's lead_channel. */
+  leadChannel?: string;
   clientIpAddress?: string;
   clientUserAgent?: string;
   /** Meta's own browser cookies. These materially improve match quality. */
@@ -136,6 +138,10 @@ export async function sendCapiEvent(e: CapiEvent): Promise<boolean> {
   }
 
   const customData: Record<string, unknown> = {};
+  // Mirrors the browser event so the merged conversion carries the same
+  // attribution either way — otherwise which channel a lead came from would
+  // depend on which of the two paths happened to survive.
+  if (e.leadChannel) customData.lead_channel = e.leadChannel;
   if (e.vehicle) {
     // Same id the catalog feed writes as vehicle_id — see meta/vehicleId.ts.
     customData.content_type = "vehicle";

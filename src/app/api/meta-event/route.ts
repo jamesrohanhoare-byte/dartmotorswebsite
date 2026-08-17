@@ -28,6 +28,7 @@ type Payload = {
   vehicle_id?: number;
   vehicle_price?: number;
   vehicle_title?: string;
+  lead_channel?: string;
   page?: string;
   fbp?: string;
   fbc?: string;
@@ -58,6 +59,11 @@ export async function POST(req: Request) {
           price: body.vehicle_price ?? null,
           title: body.vehicle_title ?? null,
         }
+      : undefined,
+    // Closed allowlist here too: this route is public, so an arbitrary string
+    // would let anyone write junk attribution into Dart's dataset.
+    leadChannel: ["whatsapp", "email", "form"].includes(body.lead_channel ?? "")
+      ? body.lead_channel
       : undefined,
     clientIpAddress: clientIpFrom(req.headers),
     clientUserAgent: req.headers.get("user-agent") ?? undefined,
