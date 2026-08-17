@@ -3,7 +3,7 @@
 import { MessageCircle, Mail, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { dealer, whatsappLink, emailLink } from "@/config/dealer";
-import { trackVehicle } from "@/lib/meta/track";
+import { trackVehicle, newEventId, metaCookies } from "@/lib/meta/track";
 
 // Per-car enquiry buttons. WhatsApp is the PRIMARY channel (Dart sells via
 // WhatsApp). Each click also logs the lead to site_leads (anon insert, RLS-safe).
@@ -14,6 +14,7 @@ export default function VehicleEnquiry({
   emailSubject,
   vehicleId,
   price,
+  stockId,
 }: {
   stockSlug: string;
   title: string;
@@ -21,12 +22,35 @@ export default function VehicleEnquiry({
   emailSubject: string;
   vehicleId: string; // Meta catalog id — matches the feed by construction
   price: number | null;
+  stockId: number; // numeric form of vehicleId, for the server-side event
 }) {
   function log(channel: "whatsapp" | "email") {
     // Mirror the click to Meta as a Lead. A WhatsApp click IS the conversion on
     // this site — it is where Dart's sale actually starts — so this is the event
     // the catalog campaign should be optimising toward, not the pageview.
-    trackVehicle("Lead", vehicleId, { value: price, name: title });
+    //
+    // One id for both paths so Meta deduplicates rather than double-counting.
+    // This visitor is anonymous (no form filled), so the server side has only
+    // Meta's cookies + IP to match on, which is exactly what /api/meta-event
+    // exists to forward.
+    const eventId = newEventId();
+    const { fbp, fbc } = metaCookies();
+    trackVehicle("Lead", vehicleId, { value: price, name: title, eventId });
+    void fetch("/api/meta-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true, // the click navigates away; without this the request dies
+      body: JSON.stringify({
+        event_name: "Lead",
+        event_id: eventId,
+        vehicle_id: stockId,
+        vehicle_price: price ?? undefined,
+        vehicle_title: title,
+        page: typeof window !== "undefined" ? window.location.pathname : undefined,
+        fbp,
+        fbc,
+      }),
+    }).catch(() => {});
 
     // Fire-and-forget; the link opens normally regardless. NOTE: a supabase
     // query is a LAZY thenable — the request is only sent inside .then().

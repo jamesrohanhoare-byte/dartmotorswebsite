@@ -176,14 +176,14 @@ export default async function VehiclePage(props: {
 
           <div className="mt-6 space-y-3">
             {/* PRIMARY: capture the lead first, tagged to this car, then hand to WhatsApp. */}
-            <VehicleInterest stockSlug={v.slug} title={title} message={msg} vehicleId={metaVehicleId(v)} price={v.price} />
+            <VehicleInterest stockSlug={v.slug} title={title} message={msg} vehicleId={metaVehicleId(v)} price={v.price} stockId={v.stock_id} />
 
             <div className="flex items-center gap-3 text-xs text-muted">
               <span className="h-px flex-1 bg-border" /> or reach us directly <span className="h-px flex-1 bg-border" />
             </div>
 
             {/* Existing quick channels (WhatsApp / Email / Call), still logged per-car. */}
-            <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} vehicleId={metaVehicleId(v)} price={v.price} />
+            <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} vehicleId={metaVehicleId(v)} price={v.price} stockId={v.stock_id} />
 
             {/* Hidden per-listing for things a finance house will not fund. A dead-end
                 application wastes the customer's time and the dealer's. */}

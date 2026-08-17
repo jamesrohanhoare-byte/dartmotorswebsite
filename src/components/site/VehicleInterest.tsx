@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MessageCircle, Check, Heart } from "lucide-react";
 import { dealer, whatsappLink } from "@/config/dealer";
-import { trackVehicle } from "@/lib/meta/track";
+import { trackVehicle, newEventId, metaCookies } from "@/lib/meta/track";
 
 // PRIMARY per-car CTA: capture the visitor's details FIRST (name/email/phone),
 // logged to site_leads tagged to this exact car (channel "interested"), THEN hand
@@ -15,12 +15,14 @@ export default function VehicleInterest({
   message,
   vehicleId,
   price,
+  stockId,
 }: {
   stockSlug: string;
   title: string;
   message: string; // pre-filled WhatsApp message for this vehicle
   vehicleId: string; // Meta catalog id — matches the feed by construction
   price: number | null;
+  stockId: number; // numeric form of vehicleId, for the server-side event
 }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
@@ -33,6 +35,11 @@ export default function VehicleInterest({
     e.preventDefault();
     if (status === "busy") return;
     setStatus("busy");
+    // ONE id, generated here, sent to both Meta paths. The browser event below
+    // and the server-side Conversions API event in /api/lead share it, so Meta
+    // merges them into a single conversion instead of counting the lead twice.
+    const eventId = newEventId();
+    const { fbp, fbc } = metaCookies();
     try {
       const res = await fetch("/api/lead", {
         method: "POST",
@@ -46,6 +53,11 @@ export default function VehicleInterest({
           message: title, // which car they're interested in
           page: typeof window !== "undefined" ? window.location.pathname : undefined,
           company,
+          event_id: eventId,
+          vehicle_id: stockId,
+          vehicle_price: price ?? undefined,
+          fbp,
+          fbc,
         }),
       });
       if (!res.ok) throw new Error();
@@ -61,7 +73,7 @@ export default function VehicleInterest({
     // Fired on BOTH paths deliberately: the DB write and the WhatsApp fallback
     // are each a real lead, and dropping the signal on the fallback would
     // under-report exactly the conversions Meta optimises toward.
-    trackVehicle("Lead", vehicleId, { value: price, name: title });
+    trackVehicle("Lead", vehicleId, { value: price, name: title, eventId });
     setStatus("done"); // either way, thank them + nudge to WhatsApp
   }
 

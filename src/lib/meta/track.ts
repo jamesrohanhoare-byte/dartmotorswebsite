@@ -15,10 +15,39 @@ declare global {
   }
 }
 
-/** Standard Meta event with optional parameters. Safe to call before load. */
-export function track(event: string, params?: Record<string, unknown>): void {
+/**
+ * Standard Meta event with optional parameters. Safe to call before load.
+ *
+ * `eventId` is what lets the Conversions API report the SAME conversion without
+ * it being double-counted. Pass the same id to both, or cost-per-lead reads at
+ * half its real value.
+ */
+export function track(
+  event: string,
+  params?: Record<string, unknown>,
+  eventId?: string,
+): void {
   if (typeof window === "undefined" || typeof window.fbq !== "function") return;
-  window.fbq("track", event, params);
+  if (eventId) window.fbq("track", event, params, { eventID: eventId });
+  else window.fbq("track", event, params);
+}
+
+/** A fresh id for one conversion, shared between the browser and the server. */
+export function newEventId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `evt-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+/**
+ * Meta's own first-party cookies. Passing them to the Conversions API is the
+ * single biggest lever on match quality for a visitor who never types an email,
+ * because they identify the browser Meta already knows.
+ */
+export function metaCookies(): { fbp?: string; fbc?: string } {
+  if (typeof document === "undefined") return {};
+  const read = (name: string) =>
+    document.cookie.split("; ").find((c) => c.startsWith(`${name}=`))?.split("=")[1];
+  return { fbp: read("_fbp"), fbc: read("_fbc") };
 }
 
 /**
@@ -32,13 +61,17 @@ export function track(event: string, params?: Record<string, unknown>): void {
 export function trackVehicle(
   event: "ViewContent" | "Lead" | "Search" | "InitiateCheckout",
   vehicleId: string,
-  extra?: { value?: number | null; name?: string },
+  extra?: { value?: number | null; name?: string; eventId?: string },
 ): void {
-  track(event, {
-    content_type: "vehicle",
-    content_ids: [vehicleId],
-    currency: "ZAR",
-    ...(extra?.value ? { value: extra.value } : {}),
-    ...(extra?.name ? { content_name: extra.name } : {}),
-  });
+  track(
+    event,
+    {
+      content_type: "vehicle",
+      content_ids: [vehicleId],
+      currency: "ZAR",
+      ...(extra?.value ? { value: extra.value } : {}),
+      ...(extra?.name ? { content_name: extra.name } : {}),
+    },
+    extra?.eventId,
+  );
 }
