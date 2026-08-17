@@ -143,7 +143,7 @@ export default async function VehiclePage(props: {
       {/* Meta ViewContent. The id comes from the same helper that writes
           vehicle_id into the catalog feed, so this event always joins to a real
           catalog row and per-car retargeting resolves. */}
-      <VehicleViewTracker vehicleId={metaVehicleId(v)} value={v.price} name={title} />
+      <VehicleViewTracker vehicleId={metaVehicleId(v)} stockId={v.stock_id} value={v.price} name={title} />
 
       <Link href="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground">
         <ChevronLeft size={16} /> Back to all stock

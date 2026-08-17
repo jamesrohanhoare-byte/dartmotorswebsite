@@ -44,9 +44,15 @@ export async function POST(req: Request) {
 
   // Closed allowlist. Without it this becomes an open relay for arbitrary event
   // names into Dart's dataset.
+  //
   // `Contact`, not `Lead` — Meta blocks Lead under the Sales objective that
   // catalogue campaigns require. See lib/meta/track.ts.
-  const eventName = body.event_name === "Contact" ? "Contact" : null;
+  //
+  // `ViewContent` is here because it is what builds the per-car retargeting
+  // audience. Browser-only, every one an ad blocker strips is a person who
+  // looked at a car and can never be shown that car again.
+  const ALLOWED = ["Contact", "ViewContent"] as const;
+  const eventName = ALLOWED.find((e) => e === body.event_name) ?? null;
   if (!eventName || !body.event_id) {
     return Response.json({ ok: false, error: "bad-request" }, { status: 400 });
   }
