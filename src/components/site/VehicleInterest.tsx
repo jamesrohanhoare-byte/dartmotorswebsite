@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MessageCircle, Check, Heart } from "lucide-react";
 import { dealer, whatsappLink } from "@/config/dealer";
+import { trackVehicle } from "@/lib/meta/track";
 
 // PRIMARY per-car CTA: capture the visitor's details FIRST (name/email/phone),
 // logged to site_leads tagged to this exact car (channel "interested"), THEN hand
@@ -12,10 +13,14 @@ export default function VehicleInterest({
   stockSlug,
   title,
   message,
+  vehicleId,
+  price,
 }: {
   stockSlug: string;
   title: string;
   message: string; // pre-filled WhatsApp message for this vehicle
+  vehicleId: string; // Meta catalog id — matches the feed by construction
+  price: number | null;
 }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
@@ -53,6 +58,10 @@ export default function VehicleInterest({
         );
       }
     }
+    // Fired on BOTH paths deliberately: the DB write and the WhatsApp fallback
+    // are each a real lead, and dropping the signal on the fallback would
+    // under-report exactly the conversions Meta optimises toward.
+    trackVehicle("Lead", vehicleId, { value: price, name: title });
     setStatus("done"); // either way, thank them + nudge to WhatsApp
   }
 

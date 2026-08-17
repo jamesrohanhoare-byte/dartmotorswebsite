@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { dealer } from "@/config/dealer";
+import MetaPixel from "@/components/site/MetaPixel";
 
 // Inter throughout — the same typeface the live Framer site uses.
 const inter = Inter({
@@ -56,6 +57,7 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
+        <MetaPixel />
         {children}
       </body>
     </html>

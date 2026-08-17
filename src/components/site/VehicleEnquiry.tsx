@@ -3,6 +3,7 @@
 import { MessageCircle, Mail, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { dealer, whatsappLink, emailLink } from "@/config/dealer";
+import { trackVehicle } from "@/lib/meta/track";
 
 // Per-car enquiry buttons. WhatsApp is the PRIMARY channel (Dart sells via
 // WhatsApp). Each click also logs the lead to site_leads (anon insert, RLS-safe).
@@ -11,13 +12,22 @@ export default function VehicleEnquiry({
   title,
   message,
   emailSubject,
+  vehicleId,
+  price,
 }: {
   stockSlug: string;
   title: string;
   message: string;
   emailSubject: string;
+  vehicleId: string; // Meta catalog id — matches the feed by construction
+  price: number | null;
 }) {
   function log(channel: "whatsapp" | "email") {
+    // Mirror the click to Meta as a Lead. A WhatsApp click IS the conversion on
+    // this site — it is where Dart's sale actually starts — so this is the event
+    // the catalog campaign should be optimising toward, not the pageview.
+    trackVehicle("Lead", vehicleId, { value: price, name: title });
+
     // Fire-and-forget; the link opens normally regardless. NOTE: a supabase
     // query is a LAZY thenable — the request is only sent inside .then().
     // `void ...` sent nothing, so these clicks were never logged.

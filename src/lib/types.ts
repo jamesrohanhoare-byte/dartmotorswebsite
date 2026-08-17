@@ -30,6 +30,13 @@ export interface SiteStock {
   extras: string | null; // raw feature blob (comma/pipe/newline separated)
   description: string | null;
   reference_id: number | null;
+  /** VMG publishes both; captured for the Meta catalog (vin) and as the canonical
+   *  SA make/model/variant key (mm_code). Optional until migration 00051 lands —
+   *  `select("*")` simply omits them until the columns exist.
+   *  ⚠️ VMG also publishes `licenceNumber`. It is deliberately never captured:
+   *  a registration number is personal data and has no place in a public feed. */
+  vin?: string | null;
+  mm_code?: number | null;
   date_updated: string | null;
   images: string[]; // ordered VMG S3 URLs
   status: StockStatus;

@@ -16,6 +16,8 @@ import VehicleInterest from "@/components/site/VehicleInterest";
 import VehicleEnquiry from "@/components/site/VehicleEnquiry";
 import VehicleCard from "@/components/site/VehicleCard";
 import ScrollRow from "@/components/site/ScrollRow";
+import VehicleViewTracker from "@/components/site/VehicleViewTracker";
+import { metaVehicleId } from "@/lib/meta/vehicleId";
 
 export const revalidate = 3600;
 // Cars added by a sync after the last build still render on-demand (then cache).
@@ -138,6 +140,11 @@ export default async function VehiclePage(props: {
     <div className="px-page mx-auto max-w-[1400px] py-8 md:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
+      {/* Meta ViewContent. The id comes from the same helper that writes
+          vehicle_id into the catalog feed, so this event always joins to a real
+          catalog row and per-car retargeting resolves. */}
+      <VehicleViewTracker vehicleId={metaVehicleId(v)} value={v.price} name={title} />
+
       <Link href="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground">
         <ChevronLeft size={16} /> Back to all stock
       </Link>
@@ -169,14 +176,14 @@ export default async function VehiclePage(props: {
 
           <div className="mt-6 space-y-3">
             {/* PRIMARY: capture the lead first, tagged to this car, then hand to WhatsApp. */}
-            <VehicleInterest stockSlug={v.slug} title={title} message={msg} />
+            <VehicleInterest stockSlug={v.slug} title={title} message={msg} vehicleId={metaVehicleId(v)} price={v.price} />
 
             <div className="flex items-center gap-3 text-xs text-muted">
               <span className="h-px flex-1 bg-border" /> or reach us directly <span className="h-px flex-1 bg-border" />
             </div>
 
             {/* Existing quick channels (WhatsApp / Email / Call), still logged per-car. */}
-            <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} />
+            <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} vehicleId={metaVehicleId(v)} price={v.price} />
 
             {/* Hidden per-listing for things a finance house will not fund. A dead-end
                 application wastes the customer's time and the dealer's. */}
