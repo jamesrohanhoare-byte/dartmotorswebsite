@@ -48,6 +48,8 @@ export async function syncStock(): Promise<SyncResult> {
       extras: v.extras || null,
       description: v.description || null,
       reference_id: v.referenceID || null,
+      vin: v.vin || null,
+      mm_code: v.mmCode || null,
       date_updated: toISO(v.dateUpdated),
       images: v.images,
       status: "available" as const,

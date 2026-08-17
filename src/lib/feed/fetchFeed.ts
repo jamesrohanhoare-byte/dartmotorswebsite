@@ -47,6 +47,11 @@ export async function fetchVehicles(): Promise<FeedVehicle[]> {
       condition: String(v.condition ?? ""),
       description: String(v.Description ?? ""),
       referenceID: Number(v.referenceID) || 0,
+      // VMG publishes <VIN> and <mmCode> per vehicle (confirmed against the live
+      // feed 2026-08-17). It also publishes <licenceNumber>, which is personal
+      // data and is deliberately never read — see feed/types.ts.
+      vin: String(v.VIN ?? ""),
+      mmCode: Number(v.mmCode) || 0,
       images,
     };
   });
