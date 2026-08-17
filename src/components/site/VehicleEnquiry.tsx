@@ -35,13 +35,15 @@ export default function VehicleEnquiry({
     // exists to forward.
     const eventId = newEventId();
     const { fbp, fbc } = metaCookies();
-    trackVehicle("Lead", vehicleId, { value: price, name: title, eventId, leadChannel: channel });
+    // `Contact`, not `Lead` — Meta blocks Lead under the Sales objective that
+    // catalogue campaigns require. See the note in lib/meta/track.ts.
+    trackVehicle("Contact", vehicleId, { value: price, name: title, eventId, leadChannel: channel });
     void fetch("/api/meta-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       keepalive: true, // the click navigates away; without this the request dies
       body: JSON.stringify({
-        event_name: "Lead",
+        event_name: "Contact",
         event_id: eventId,
         vehicle_id: stockId,
         vehicle_price: price ?? undefined,

@@ -71,8 +71,25 @@ export function metaCookies(): { fbp?: string; fbc?: string } {
  */
 export type LeadChannel = "form" | "whatsapp" | "email";
 
+/**
+ * ⚠️ WHY `Contact` AND NOT `Lead` — do not "fix" this back.
+ *
+ * Meta reserves the `Lead` standard event for the LEADS campaign objective. A
+ * catalogue campaign can only run under the SALES objective, and Sales refuses
+ * `Lead` outright ("this conversion event is only available with the Leads
+ * objective"). A custom conversion built on `Lead` is gated the same way, so
+ * there is no workaround. Discovered the hard way on 2026-08-18.
+ *
+ * `Contact` is available under Sales, and is the better semantic fit anyway:
+ * Meta defines it as "a telephone, SMS, email, chat or other contact between a
+ * customer and your business", which is exactly what a WhatsApp click is.
+ * `Lead` really means "submitted their details", which only describes the form.
+ *
+ * All three enquiry actions (form, WhatsApp, email) fire `Contact`, separated
+ * by the lead_channel parameter below rather than by event name.
+ */
 export function trackVehicle(
-  event: "ViewContent" | "Lead" | "Search" | "InitiateCheckout",
+  event: "ViewContent" | "Contact" | "Search" | "InitiateCheckout",
   vehicleId: string,
   extra?: {
     value?: number | null;

@@ -48,7 +48,9 @@ export type CapiIdentity = {
 };
 
 export type CapiEvent = {
-  eventName: "Lead" | "ViewContent";
+  /** `Contact`, not `Lead`: Meta blocks Lead under the Sales objective that
+   *  catalogue campaigns require. See the note in lib/meta/track.ts. */
+  eventName: "Contact" | "ViewContent";
   /** MUST match the browser event's id, or Meta counts the conversion twice. */
   eventId: string;
   eventSourceUrl?: string;

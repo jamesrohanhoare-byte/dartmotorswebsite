@@ -73,7 +73,9 @@ export default function VehicleInterest({
     // Fired on BOTH paths deliberately: the DB write and the WhatsApp fallback
     // are each a real lead, and dropping the signal on the fallback would
     // under-report exactly the conversions Meta optimises toward.
-    trackVehicle("Lead", vehicleId, { value: price, name: title, eventId, leadChannel: "form" });
+    // `Contact`, not `Lead` — Meta blocks Lead under the Sales objective that
+    // catalogue campaigns require. See the note in lib/meta/track.ts.
+    trackVehicle("Contact", vehicleId, { value: price, name: title, eventId, leadChannel: "form" });
     setStatus("done"); // either way, thank them + nudge to WhatsApp
   }
 

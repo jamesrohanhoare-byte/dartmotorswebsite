@@ -80,7 +80,8 @@ export async function POST(req: Request) {
     // Awaited, not fire-and-forget: a serverless function can be frozen the
     // moment it responds, which would silently drop the request mid-flight.
     await sendCapiEvent({
-      eventName: "Lead",
+      // `Contact`, not `Lead` — see lib/meta/track.ts for why.
+      eventName: "Contact",
       eventId: body.event_id,
       eventSourceUrl: body.page ? `${dealer.siteUrl}${body.page}` : dealer.siteUrl,
       identity: {
