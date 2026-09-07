@@ -43,10 +43,10 @@ export const dealer = {
     // ⚠️ There are TWO Zonnekus Roads in Cape Town — one in Lagoon Beach,
     // Milnerton, and this one in Morning Star. A text search can resolve to the
     // wrong suburb, so the map and the directions link are pinned to coordinates.
-    // Source: OpenStreetMap, Zonnekus Road, Morning Star, City of Cape Town.
-    // ⚠️ These are the ROAD coordinates, not the gate of number 73 — ask Justin
-    // to drop a pin from his phone at the entrance and paste it here.
-    geo: { lat: -33.7525982, lng: 18.5296596 },
+    // ✅ Exact pin dropped by James on 2026-09-07, who has been to the property.
+    // The earlier value (-33.7525982, 18.5296596) was the OSM road centroid and
+    // landed roughly 700m up the road at the wrong end.
+    geo: { lat: -33.756064, lng: 18.520783 },
   },
 
   // ⚠️ Opening hours — not on the current site. Placeholder; confirm with James.
