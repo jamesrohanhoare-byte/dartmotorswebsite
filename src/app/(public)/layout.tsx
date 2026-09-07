@@ -2,6 +2,7 @@ import Nav from "@/components/site/Nav";
 import Footer from "@/components/site/Footer";
 import FloatingWhatsApp from "@/components/site/FloatingWhatsApp";
 import Ticker from "@/components/site/Ticker";
+import MovingNotice from "@/components/site/MovingNotice";
 import ScrollToTop from "@/components/site/ScrollToTop";
 
 export default function PublicLayout({
@@ -13,6 +14,7 @@ export default function PublicLayout({
     <>
       <ScrollToTop />
       <Ticker />
+      <MovingNotice />
       <Nav />
       <main className="flex-1">{children}</main>
       <Footer />

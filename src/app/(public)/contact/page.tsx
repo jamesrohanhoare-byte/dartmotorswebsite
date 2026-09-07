@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { MapPin, Clock, Phone, Mail, MessageCircle } from "lucide-react";
-import { dealer, whatsappLink } from "@/config/dealer";
+import { dealer, whatsappLink, temporaryAddressLine, temporaryMapsLink, temporaryMapEmbedSrc } from "@/config/dealer";
 import ContactForm from "@/components/site/ContactForm";
 import Socials from "@/components/site/Socials";
 
@@ -13,8 +13,33 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  const items = [
-    { icon: MapPin, label: "Visit us", value: `${dealer.address.line1}, ${dealer.address.suburb}, ${dealer.address.city}` },
+  // While Dart is between premises, the map + "Visit us" card point at the
+  // temporary site. Page metadata deliberately stays on Woodstock (SEO).
+  const moving = dealer.temporaryLocation.active;
+  const mapQuery = moving
+    ? temporaryAddressLine()
+    : `${dealer.address.line1}, ${dealer.address.suburb}, ${dealer.address.city}`;
+
+  type Item = {
+    icon: typeof MapPin;
+    label: string;
+    value: string;
+    href?: string;
+    external?: boolean;
+  };
+
+  const visit: Item = moving
+    ? {
+        icon: MapPin,
+        label: "Visit us (temporary)",
+        value: `${mapQuery}\nWe're moving, so please use this address for now.`,
+        href: temporaryMapsLink(),
+        external: true,
+      }
+    : { icon: MapPin, label: "Visit us", value: mapQuery };
+
+  const items: Item[] = [
+    visit,
     { icon: Clock, label: "Hours", value: `${dealer.hoursWeekday}\n${dealer.hoursSaturday}` },
     { icon: Phone, label: "Call us", value: dealer.phone, href: `tel:${dealer.phoneTel}` },
     { icon: Mail, label: "Email us", value: dealer.email, href: `mailto:${dealer.email}` },
@@ -44,7 +69,12 @@ export default function ContactPage() {
                 </>
               );
               return it.href ? (
-                <a key={it.label} href={it.href} className="rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-accent">{inner}</a>
+                <a
+                  key={it.label}
+                  href={it.href}
+                  {...(it.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  className="rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-accent"
+                >{inner}</a>
               ) : (
                 <div key={it.label} className="rounded-2xl border border-border bg-surface p-4">{inner}</div>
               );
@@ -71,8 +101,8 @@ export default function ContactPage() {
         {/* Right: map, tall + sticky so it fills the column */}
         <div className="overflow-hidden rounded-2xl border border-border lg:sticky lg:top-24 lg:h-[620px]">
           <iframe
-            title={`${dealer.name} location`}
-            src={`https://www.google.com/maps?q=${encodeURIComponent(`${dealer.address.line1}, ${dealer.address.suburb}, ${dealer.address.city}`)}&output=embed`}
+            title={moving ? `${dealer.name} temporary location` : `${dealer.name} location`}
+            src={moving ? temporaryMapEmbedSrc() : `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
             className="h-full min-h-[360px] w-full"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

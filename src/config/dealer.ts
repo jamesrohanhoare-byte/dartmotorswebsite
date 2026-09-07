@@ -29,6 +29,26 @@ export const dealer = {
     postalCode: "7925",
     country: "South Africa",
   },
+  // TEMPORARY PREMISES — Dart is moving out of Woodstock; the permanent site near
+  // Rivergate is not ready yet, so they are trading from a farm property in the gap.
+  // Set active: false to remove the notice bar and restore the Woodstock map.
+  // Deliberately NOT wired into SEO metadata, JSON-LD schema or the Meta feed —
+  // those stay on Woodstock so local ranking is not churned by a temporary address.
+  temporaryLocation: {
+    active: true as boolean,
+    line1: "73 Zonnekus Road",
+    suburb: "Morningstar",
+    city: "Cape Farms",
+    notice: "We're moving.",
+    // ⚠️ There are TWO Zonnekus Roads in Cape Town — one in Lagoon Beach,
+    // Milnerton, and this one in Morning Star. A text search can resolve to the
+    // wrong suburb, so the map and the directions link are pinned to coordinates.
+    // Source: OpenStreetMap, Zonnekus Road, Morning Star, City of Cape Town.
+    // ⚠️ These are the ROAD coordinates, not the gate of number 73 — ask Justin
+    // to drop a pin from his phone at the entrance and paste it here.
+    geo: { lat: -33.7525982, lng: 18.5296596 },
+  },
+
   // ⚠️ Opening hours — not on the current site. Placeholder; confirm with James.
   hours: "Mon to Fri 08:00 to 17:00 · Sat 08:00 to 13:00",
   hoursWeekday: "Mon to Fri 08:00 to 17:00",
@@ -129,6 +149,29 @@ export const dealer = {
     "Suzuki",
   ],
 } as const;
+
+/** Full one-line temporary address, used by the notice bar and the contact page. */
+export function temporaryAddressLine(): string {
+  const t = dealer.temporaryLocation;
+  return `${t.line1}, ${t.suburb}, ${t.city}`;
+}
+
+/**
+ * Google Maps link for the temporary premises. Pinned to coordinates rather than
+ * a text search, because "Zonnekus Road" also exists in Lagoon Beach, Milnerton
+ * and a text search can send customers to the wrong side of Cape Town.
+ * Opens the native Maps app on mobile.
+ */
+export function temporaryMapsLink(): string {
+  const { lat, lng } = dealer.temporaryLocation.geo;
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+}
+
+/** Embeddable Google Maps iframe src for the temporary premises. */
+export function temporaryMapEmbedSrc(): string {
+  const { lat, lng } = dealer.temporaryLocation.geo;
+  return `https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+}
 
 /** Build a WhatsApp click-to-chat link with a pre-filled message. */
 export function whatsappLink(message: string): string {
