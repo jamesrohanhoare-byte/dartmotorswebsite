@@ -4,7 +4,8 @@ import { dealer, whatsappLink, temporaryAddressLine, temporaryMapsLink, temporar
 import ContactForm from "@/components/site/ContactForm";
 import Socials from "@/components/site/Socials";
 
-export const revalidate = 3600;
+// 24h safety net; every real change revalidates on demand (see shop/[slug]/page.tsx).
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Contact Dart Motors",

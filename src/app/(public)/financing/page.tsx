@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { dealer } from "@/config/dealer";
 import FinanceWizard from "@/components/site/FinanceWizard";
 
-export const revalidate = 3600;
+// 24h safety net; every real change revalidates on demand (see shop/[slug]/page.tsx).
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Vehicle Finance",

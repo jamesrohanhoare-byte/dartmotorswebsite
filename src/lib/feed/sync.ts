@@ -1,5 +1,6 @@
 import { fetchVehicles } from "./fetchFeed";
 import { createServiceClient } from "@/lib/supabase/service";
+import { diffStock, FEED_FIELDS, type FeedRow } from "./diff";
 
 function toISO(dateStr: string): string | null {
   if (!dateStr) return null;
@@ -12,6 +13,11 @@ export interface SyncResult {
   upserted: number;
   archived: number;
   purged: number;
+  /** Cars added, edited or marked sold by this run. Zero means the site's cached
+   *  pages are still correct and the caller must NOT revalidate them. */
+  changed: number;
+  /** The slugs behind `changed`, so a run's response says which cars moved. */
+  changes: string[];
 }
 
 /**
@@ -63,6 +69,22 @@ export async function syncStock(): Promise<SyncResult> {
     };
   });
 
+  // What the site holds right now, read before we touch it. Two jobs: the diff
+  // that decides whether any cached page needs regenerating, and the stale list.
+  //
+  // Scoped to source='feed' — the sync only reconciles what the feed owns. Manual
+  // listings (a trailer, a bakkie canopy, anything created in Dartbooks) are not in
+  // the VMG feed by definition, so without this filter every sync would flip them to
+  // 'sold' and the page would die silently within hours. See migration 00050.
+  const { data: existingRows, error: readErr } = await supabase
+    .from("site_stock")
+    .select(["slug", ...FEED_FIELDS].join(","))
+    .eq("source", "feed");
+  if (readErr) throw new Error(`site_stock read failed: ${readErr.message}`);
+  const existing = (existingRows ?? []) as unknown as FeedRow[];
+
+  const diff = diffStock(existing, rows);
+
   // Upsert (featured now reflects VMG condition on every sync).
   const { error: upErr } = await supabase.from("site_stock").upsert(rows, {
     onConflict: "slug",
@@ -70,22 +92,11 @@ export async function syncStock(): Promise<SyncResult> {
   if (upErr) throw new Error(`site_stock upsert failed: ${upErr.message}`);
 
   // Soft-delete stale: available rows whose slug is no longer in the feed.
-  //
-  // Scoped to source='feed' — the sync only reconciles what the feed owns. Manual
-  // listings (a trailer, a bakkie canopy, anything created in Dartbooks) are not in
-  // the VMG feed by definition, so without this filter every sync would flip them to
-  // 'sold' and the page would die silently within hours. See migration 00050.
+  // (A row already marked sold and still absent from the feed is not a change.)
   const feedSlugs = new Set(rows.map((r) => r.slug));
-  const { data: liveRows, error: readErr } = await supabase
-    .from("site_stock")
-    .select("slug")
-    .eq("status", "available")
-    .eq("source", "feed");
-  if (readErr) throw new Error(`site_stock read failed: ${readErr.message}`);
-
-  const staleSlugs = (liveRows ?? [])
-    .map((r) => r.slug as string)
-    .filter((slug) => !feedSlugs.has(slug));
+  const staleSlugs = existing
+    .filter((r) => r.status === "available" && !feedSlugs.has(r.slug))
+    .map((r) => r.slug);
 
   let archived = 0;
   if (staleSlugs.length > 0) {
@@ -115,5 +126,13 @@ export async function syncStock(): Promise<SyncResult> {
     }
   }
 
-  return { fetched: vehicles.length, upserted: rows.length, archived, purged };
+  const changes = [...diff.added, ...diff.changed, ...staleSlugs];
+  return {
+    fetched: vehicles.length,
+    upserted: rows.length,
+    archived,
+    purged,
+    changed: changes.length,
+    changes,
+  };
 }

@@ -25,9 +25,13 @@ async function handle(req: Request) {
   try {
     const result = await syncStock();
     // Refresh every ISR page (all share the root layout) so new/updated/sold
-    // stock appears immediately instead of waiting for the revalidate window.
-    revalidatePath("/", "layout");
-    return Response.json({ success: true, ...result, timestamp: new Date().toISOString() });
+    // stock appears immediately instead of waiting for the revalidate window —
+    // but ONLY when the floor actually moved. An unconditional refresh here
+    // re-rendered ~36 pages × ~11 cache entries five times a day for nothing,
+    // which is what tripped Vercel's ISR-write limit warning on 2026-09-08.
+    const revalidated = result.changed > 0;
+    if (revalidated) revalidatePath("/", "layout");
+    return Response.json({ success: true, ...result, revalidated, timestamp: new Date().toISOString() });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[sync] failed:", message);

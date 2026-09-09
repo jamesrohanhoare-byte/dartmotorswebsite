@@ -19,7 +19,10 @@ import ScrollRow from "@/components/site/ScrollRow";
 import VehicleViewTracker from "@/components/site/VehicleViewTracker";
 import { metaVehicleId } from "@/lib/meta/vehicleId";
 
-export const revalidate = 3600;
+// 24h is a safety net only: every real change (sync, manual listing, featured
+// toggle) revalidates on demand. The old hourly window re-rendered every page
+// ~24×/day for nothing, and on Next 16 each render writes ~11 cache entries.
+export const revalidate = 86400;
 // Cars added by a sync after the last build still render on-demand (then cache).
 export const dynamicParams = true;
 

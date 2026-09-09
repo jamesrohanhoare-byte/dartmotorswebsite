@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { dealer } from "@/config/dealer";
 
-export const revalidate = 3600;
+// 24h safety net; every real change revalidates on demand (see shop/[slug]/page.tsx).
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "About Dart Motors | Trusted Since 1975",
