@@ -71,6 +71,24 @@ test("bookkeeping columns never count as a change", () => {
   assert.equal(d.total, 0);
 });
 
+test("the same instant in Postgres form and ISO form is not a change", () => {
+  // PostgREST returns timestamptz as +00:00; toISO() in the sync produces .000Z.
+  // Seen live 2026-09-09: all 31 cars reported changed on a floor that had not moved.
+  const d = diffStock(
+    [car({ date_updated: "2026-09-07T12:36:08+00:00" })],
+    [car({ date_updated: "2026-09-07T12:36:08.000Z" })],
+  );
+  assert.equal(d.total, 0);
+});
+
+test("a genuinely later date_updated is still a change", () => {
+  const d = diffStock(
+    [car({ date_updated: "2026-09-07T12:36:08+00:00" })],
+    [car({ date_updated: "2026-09-08T09:00:00.000Z" })],
+  );
+  assert.deepEqual(d.changed, ["stock-820"]);
+});
+
 test("null and undefined mean the same absent value", () => {
   const d = diffStock([car({ vin: null })], [car({ vin: undefined })]);
   assert.equal(d.total, 0);

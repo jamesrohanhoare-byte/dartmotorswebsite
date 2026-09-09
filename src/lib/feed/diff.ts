@@ -53,8 +53,22 @@ export interface StockDiff {
 
 // null and undefined both mean "absent"; a column that was never set must not
 // read as a change against one that was set to null.
+//
+// date_updated is compared as an instant, not a string: PostgREST hands back
+// timestamptz as "2026-09-07T12:36:08+00:00" while the sync writes it as
+// "2026-09-07T12:36:08.000Z". Same moment, different spelling — and on the first
+// live run that spelling alone flagged all 31 cars as changed.
+function normalise(field: FeedField, value: unknown): unknown {
+  if (value === undefined || value === null) return null;
+  if (field === "date_updated" && typeof value === "string") {
+    const ms = Date.parse(value);
+    return Number.isNaN(ms) ? value : ms;
+  }
+  return value;
+}
+
 function fingerprint(row: FeedRow): string {
-  return JSON.stringify(FEED_FIELDS.map((field) => row[field] ?? null));
+  return JSON.stringify(FEED_FIELDS.map((field) => normalise(field, row[field])));
 }
 
 export function diffStock(existing: readonly FeedRow[], incoming: readonly FeedRow[]): StockDiff {
