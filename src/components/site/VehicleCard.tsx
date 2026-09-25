@@ -82,6 +82,12 @@ export default function VehicleCard({
   return (
     <Link
       href={`/shop/${vehicle.slug}`}
+      // A 30-car /shop page prefetched all 30 RSC payloads the moment the cards
+      // entered the viewport: ~18 billable edge requests per visit against ~1,300
+      // visits a day, which is most of Dart's 1M-request Hobby allowance and every
+      // bot that scrolls spends it too. They are all cache HITs, so nothing is
+      // gained on the origin by warming them early. Hover still prefetches.
+      prefetch={false}
       className="group block overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
     >
       {content}

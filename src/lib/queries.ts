@@ -1,5 +1,6 @@
 import { supabasePublic as supabase } from "@/lib/supabase/public";
 import type { SiteStock } from "@/lib/types";
+import { isWithinSoldGrace } from "@/lib/stock/soldGrace";
 
 // All public reads go through the cookie-free anon client so pages render
 // statically (ISR). RLS grants anon SELECT on site_stock only.
@@ -35,6 +36,40 @@ export async function getStockBySlug(slug: string): Promise<SiteStock | null> {
     .maybeSingle();
   if (error || !data) return null;
   return data as SiteStock;
+}
+
+/**
+ * One car for its OWN page, including a recently-sold one.
+ *
+ * ⚠️ The only read in this file that can return a sold row, and it is only ever
+ * used by shop/[slug] for the page that IS that car. Every listing read above
+ * stays status='available', so a sold car still never appears in a grid, the
+ * featured row, the related row or the sitemap.
+ *
+ * Why it exists: the Meta catalog keeps a sold car for SOLD_GRACE_DAYS so a
+ * ViewContent fired before the sale still resolves, which means Meta is running
+ * ads pointing at that url. Until 2026-09-25 that url returned 404 for all 28 of
+ * them: paid clicks landing on an error, and the kind of dead link Commerce
+ * Manager disapproves items for. The page now renders, clearly marked sold, for
+ * exactly as long as the feed is still advertising it. One function decides
+ * "still ours to serve" for both sides — see lib/stock/soldGrace.ts.
+ */
+export async function getStockBySlugAllowingSold(
+  slug: string,
+): Promise<{ vehicle: SiteStock; sold: boolean } | null> {
+  const { data, error } = await supabase
+    .from("site_stock")
+    .select("*")
+    .eq("slug", slug)
+    .in("status", ["available", "sold"])
+    .maybeSingle();
+  if (error || !data) return null;
+
+  const vehicle = data as SiteStock;
+  if (vehicle.status !== "sold") return { vehicle, sold: false };
+  // Past the window the feed has dropped it too, so there is no advertising
+  // pointing here any more and a 404 is the honest answer again.
+  return isWithinSoldGrace(vehicle) ? { vehicle, sold: true } : null;
 }
 
 /** More available stock, excluding one slug — for the "you may also like" row. */

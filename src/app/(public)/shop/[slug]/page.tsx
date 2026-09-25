@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import { getStockBySlug, getAllStockSlugs, getRelatedStock } from "@/lib/queries";
+import { getStockBySlugAllowingSold, getAllStockSlugs, getRelatedStock } from "@/lib/queries";
 import { dealer, vehicleEnquiryMessage } from "@/config/dealer";
 import {
   formatPrice,
@@ -35,9 +35,10 @@ export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await props.params;
-  const v = await getStockBySlug(slug);
-  if (!v) return { title: "Vehicle not found" };
-  const title = `${stockTitle(v)} · ${formatPrice(v.price)}`;
+  const found = await getStockBySlugAllowingSold(slug);
+  if (!found) return { title: "Vehicle not found" };
+  const { vehicle: v, sold } = found;
+  const title = sold ? `SOLD · ${stockTitle(v)}` : `${stockTitle(v)} · ${formatPrice(v.price)}`;
   // A manual listing has no mileage or colour to describe it, so it leads with its
   // own headline specs instead of claiming "n/a km" and offering vehicle finance.
   const detail =
@@ -66,8 +67,11 @@ export default async function VehiclePage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await props.params;
-  const v = await getStockBySlug(slug);
-  if (!v) notFound();
+  // Resolves a recently-sold car too, so the urls the Meta catalog is still
+  // advertising land on a real page instead of a 404. See lib/stock/soldGrace.ts.
+  const found = await getStockBySlugAllowingSold(slug);
+  if (!found) notFound();
+  const { vehicle: v, sold } = found;
 
   const title = stockTitle(v);
   const msg = vehicleEnquiryMessage({ year: v.year, make: v.make, variant: v.variant, stockId: v.stock_id });
@@ -80,7 +84,7 @@ export default async function VehiclePage(props: {
   const isManual = v.source === "manual";
   // Defaults to on. Written as "not false" so the CTA survives the window between
   // this code deploying and migration 00050 landing, when the column reads undefined.
-  const showFinance = v.show_finance !== false;
+  const showFinance = !sold && v.show_finance !== false;
 
   // Spec grid — only whatever the feed actually gives us for this car.
   const specs: { label: string; value: string }[] = isManual
@@ -98,7 +102,7 @@ export default async function VehiclePage(props: {
     "@type": "Offer",
     priceCurrency: "ZAR",
     ...(v.price ? { price: v.price } : {}),
-    availability: "https://schema.org/InStock",
+    availability: sold ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
     itemCondition: "https://schema.org/UsedCondition",
     seller: { "@type": "AutoDealer", name: dealer.name },
   };
@@ -146,7 +150,9 @@ export default async function VehiclePage(props: {
       {/* Meta ViewContent. The id comes from the same helper that writes
           vehicle_id into the catalog feed, so this event always joins to a real
           catalog row and per-car retargeting resolves. */}
-      <VehicleViewTracker vehicleId={metaVehicleId(v)} stockId={v.stock_id} value={v.price} name={title} />
+      {!sold && (
+        <VehicleViewTracker vehicleId={metaVehicleId(v)} stockId={v.stock_id} value={v.price} name={title} />
+      )}
 
       <Link href="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground">
         <ChevronLeft size={16} /> Back to all stock
@@ -163,7 +169,16 @@ export default async function VehiclePage(props: {
         <div className="min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-start lg:sticky lg:top-24">
           <p className="eyebrow mb-2">{v.make}</p>
           <h1 className="text-2xl font-bold leading-tight md:text-3xl">{title}</h1>
-          <div className="mt-2 text-2xl font-bold text-accent">{formatPrice(v.price)}</div>
+          {sold ? (
+            <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="rounded-lg bg-foreground px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-background">
+                Sold
+              </span>
+              <span className="text-2xl font-bold text-muted line-through">{formatPrice(v.price)}</span>
+            </div>
+          ) : (
+            <div className="mt-2 text-2xl font-bold text-accent">{formatPrice(v.price)}</div>
+          )}
 
           <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border">
             {specs.map((s, i) => (
@@ -177,6 +192,29 @@ export default async function VehiclePage(props: {
             ))}
           </dl>
 
+          {sold ? (
+            <div className="mt-6 rounded-2xl border border-border bg-surface p-5">
+              <p className="text-sm font-semibold">This one has been sold.</p>
+              <p className="mt-1.5 text-sm text-muted">
+                Stock moves fast. We get cars like this in regularly, and we can let you know
+                the moment something similar lands.
+              </p>
+              <div className="mt-4 space-y-3">
+                <Link
+                  href="/shop"
+                  className="block rounded-xl bg-accent px-4 py-3 text-center text-sm font-semibold text-background transition-opacity hover:opacity-90"
+                >
+                  See what&apos;s available now →
+                </Link>
+                <Link
+                  href={`/contact?enquiry=${encodeURIComponent(`Looking for something like the ${title}`)}`}
+                  className="block rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-medium transition-colors hover:border-accent hover:text-accent"
+                >
+                  Tell us what you&apos;re looking for
+                </Link>
+              </div>
+            </div>
+          ) : (
           <div className="mt-6 space-y-3">
             {/* PRIMARY: capture the lead first, tagged to this car, then hand to WhatsApp. */}
             <VehicleInterest stockSlug={v.slug} title={title} message={msg} vehicleId={metaVehicleId(v)} price={v.price} stockId={v.stock_id} />
@@ -196,6 +234,7 @@ export default async function VehiclePage(props: {
               </Link>
             )}
           </div>
+          )}
         </div>
 
         {/* Features + description — last on mobile, below the gallery on desktop */}

@@ -2,6 +2,7 @@ import type { SiteStock } from "@/lib/types";
 import { dealer } from "@/config/dealer";
 import { stockTitle, transmissionFromVariant } from "@/lib/format";
 import { metaVehicleId } from "./vehicleId";
+import { isWithinSoldGrace } from "@/lib/stock/soldGrace";
 
 /**
  * Maps one site_stock row to one Meta vehicle-catalog row.
@@ -11,9 +12,6 @@ import { metaVehicleId } from "./vehicleId";
  * when the first real upload runs, reconcile against its error report and
  * record the outcome here so the next dealer starts from proven ground.
  */
-
-/** How long a sold car stays in the feed so historical events still resolve. */
-const SOLD_GRACE_DAYS = 90;
 
 /** VMG publishes up to 10 images per car; carry all of them. */
 const IMAGE_SLOTS = 10;
@@ -59,12 +57,11 @@ export function isFeedEligible(v: SiteStock): boolean {
   if (v.source === "manual") return false;
   if (!v.price || v.price <= 0) return false;
   if (!v.images?.length) return false;
-  if (v.status === "sold") {
-    // synced_at freezes at the last sync that still saw the car in the VMG
-    // feed, which is exactly "when it left the floor".
-    const lastSeen = v.synced_at ? new Date(v.synced_at).getTime() : 0;
-    if (Date.now() - lastSeen > SOLD_GRACE_DAYS * 86_400_000) return false;
-  }
+  // The grace window is NOT decided here. lib/stock/soldGrace.ts owns it, and
+  // the vehicle page asks the same function, so a car this feed still advertises
+  // always has a landing page that renders. They drifted apart once and Meta
+  // ended up holding 28 catalog items whose url 404'd.
+  if (v.status === "sold" && !isWithinSoldGrace(v)) return false;
   return true;
 }
 
