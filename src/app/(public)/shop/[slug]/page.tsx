@@ -171,7 +171,7 @@ export default async function VehiclePage(props: {
           <h1 className="text-2xl font-bold leading-tight md:text-3xl">{title}</h1>
           {sold ? (
             <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="rounded-lg bg-foreground px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-background">
+              <span className="rounded-lg bg-sold px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white">
                 Sold
               </span>
               <span className="text-2xl font-bold text-muted line-through">{formatPrice(v.price)}</span>

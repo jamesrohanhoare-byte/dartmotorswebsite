@@ -15,6 +15,11 @@
   --accent: #e85d1f; /* Dart orange (primary CTA) */
   --accent-hover: #cf4f14;
   --maroon: #6e1b1b; /* top ticker / secondary accent */
+  /* SOLD badge. Deliberately NOT the maroon (too dark to carry a warning) and
+     NOT the orange (that is the buy button — the two must never read alike).
+     Crimson at hue 350 against the accent's 26 separates them on sight, and it
+     clears 6.0:1 with white text on dark and 5.1:1 on .theme-cream. */
+  --sold: #c41230;
 }
 
 /* The original cream palette, scoped. Applied to the heritage / vintage-photo
@@ -42,6 +47,7 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-maroon: var(--maroon);
+  --color-sold: var(--sold);
   --font-sans: var(--font-sans);
   --font-display: var(--font-sans);
 }
