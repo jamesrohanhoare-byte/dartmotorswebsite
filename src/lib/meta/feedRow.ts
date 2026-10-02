@@ -40,7 +40,19 @@ export const META_COLUMNS: string[] = [
   "longitude",
   "dealer_name",
   ...Array.from({ length: IMAGE_SLOTS }, (_, i) => `image[${i}].url`),
+  "custom_label_0",
 ];
+
+/**
+ * The "Just Arrived" window for Meta retargeting (2026-10-02), filtering a
+ * Meta Product Set on this label. 30 days was checked against real stock, not
+ * guessed: of 31 available cars, only 1 is under 7 days old and 5 under 21 —
+ * both too thin to run an ad set on. 30 days gives 8, and matches the exact
+ * window the website's own "Just In" section already uses
+ * (site/our-story... see migration 00049_just_in_backfill.sql), so the ad and
+ * the site never disagree about what counts as new.
+ */
+const JUST_IN_WINDOW_DAYS = 30;
 
 /**
  * Whether a row belongs in the catalog at all.
@@ -183,6 +195,11 @@ function flatten(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function isJustIn(v: SiteStock): boolean {
+  const ageMs = Date.now() - new Date(v.created_at).getTime();
+  return ageMs <= JUST_IN_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+}
+
 export function toFeedRow(v: SiteStock): Record<string, string> {
   // Assembled rather than taking v.title verbatim, because v.title is built by
   // the sync as "{year} {MAKE} {variant}" and would keep the shouted make. The
@@ -236,6 +253,10 @@ export function toFeedRow(v: SiteStock): Record<string, string> {
     latitude: String(dealer.geo.lat),
     longitude: String(dealer.geo.lng),
     dealer_name: dealer.name,
+    // Drives the "Just Arrived" Meta product set. v.created_at is the sync's
+    // own first-seen timestamp (never rewritten on later upserts — see
+    // migration 00049), the same field the website's "Just In" section reads.
+    custom_label_0: isJustIn(v) ? "just_in" : "",
   };
 
   for (let i = 0; i < IMAGE_SLOTS; i++) {
