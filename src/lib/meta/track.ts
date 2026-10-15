@@ -47,7 +47,39 @@ export function metaCookies(): { fbp?: string; fbc?: string } {
   if (typeof document === "undefined") return {};
   const read = (name: string) =>
     document.cookie.split("; ").find((c) => c.startsWith(`${name}=`))?.split("=")[1];
-  return { fbp: read("_fbp"), fbc: read("_fbc") };
+  return { fbp: read("_fbp"), fbc: read("_fbc") ?? storedFbc() };
+}
+
+/**
+ * Our own copy of the newest Meta ad click, as Meta's fbc value
+ * (fb.1.<ms>.<fbclid>). The pixel writes the same thing to the _fbc cookie, but
+ * only when it is NOT blocked. When iOS or an ad blocker stops the pixel, the
+ * server copy of an enquiry still reaches Meta (api/meta-event, api/lead) but,
+ * without this, it cannot say which ad the person came from. Same logic as
+ * BlitzBooks' captureFbc (2026-10-15). A reload of the same click keeps its
+ * original time; a new ad click replaces it.
+ */
+export const FBC_KEY = "dart_fbc";
+
+export function captureFbc(href?: string, now: number = Date.now()): void {
+  try {
+    const url = new URL(href ?? window.location.href);
+    const fbclid = url.searchParams.get("fbclid")?.slice(0, 300);
+    if (!fbclid) return;
+    const prev = localStorage.getItem(FBC_KEY);
+    if (prev && prev.endsWith(`.${fbclid}`)) return;
+    localStorage.setItem(FBC_KEY, `fb.1.${now}.${fbclid}`);
+  } catch {
+    /* storage blocked: the cookie path still works when the pixel loads */
+  }
+}
+
+function storedFbc(): string | undefined {
+  try {
+    return localStorage.getItem(FBC_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /**

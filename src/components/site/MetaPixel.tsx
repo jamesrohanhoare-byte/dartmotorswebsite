@@ -2,6 +2,8 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { captureFbc } from "@/lib/meta/track";
 
 /**
  * Loads the Meta pixel and fires PageView.
@@ -29,6 +31,10 @@ const NO_AUTOCONFIG_PATHS = ["/financing"];
 export default function MetaPixel() {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const pathname = usePathname();
+
+  // Keep the ad click even when the pixel script is blocked (iPhone privacy,
+  // ad blockers), so the server copy of an enquiry can still name the ad.
+  useEffect(() => captureFbc(), [pathname]);
 
   if (!pixelId) return null;
 
