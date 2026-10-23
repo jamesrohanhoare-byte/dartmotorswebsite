@@ -8,5 +8,9 @@ export function cdnImg(src: string | undefined | null, width: number, quality = 
   if (!/^https?:\/\//i.test(src)) return src; // local asset — leave as-is
   const path = src.replace(/^https?:\/\//i, "");
   const prefix = /^https:/i.test(src) ? "ssl:" : "";
-  return `https://images.weserv.nl/?url=${prefix}${encodeURI(path)}&w=${width}&q=${quality}`;
+  // output=jpg: weserv otherwise keeps the source format, and VMG has stored
+  // photos as PNG (Dart, 2026-10-21). we: never enlarge, so a 500px photo is
+  // not inflated to 1400px. Together they took one gallery photo from 2.4 MB
+  // to 34 KB; the browser scales it to the frame either way.
+  return `https://images.weserv.nl/?url=${prefix}${encodeURI(path)}&w=${width}&q=${quality}&output=jpg&we`;
 }
