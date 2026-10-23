@@ -13,8 +13,12 @@ import { isWithinSoldGrace } from "@/lib/stock/soldGrace";
  * record the outcome here so the next dealer starts from proven ground.
  */
 
-/** VMG publishes up to 10 images per car; carry all of them. */
-const IMAGE_SLOTS = 10;
+/**
+ * VMG's f1 feed publishes up to 20 images per car, which is also Meta's cap for
+ * a vehicle ("Max items: 20", auto-ads reference). Was 10 until 2026-10-23,
+ * when the sync still read the 10-photo f15 feed. See feed/fetchFeed.ts.
+ */
+const IMAGE_SLOTS = 20;
 
 /** Fixed column order. The feed's header row is exactly this, in this order. */
 export const META_COLUMNS: string[] = [
