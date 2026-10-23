@@ -1,6 +1,6 @@
-import { test } from "node:test";
+import { test, mock } from "node:test";
 import assert from "node:assert/strict";
-import { parseVehicles, versionImageUrl } from "./fetchFeed.ts";
+import { fetchVehicles, fullPhotoFeedUrl, parseVehicles, versionImageUrl } from "./fetchFeed.ts";
 
 // Run: npm test
 
@@ -75,4 +75,49 @@ test("no edit time leaves the link untouched", () => {
 
 test("a link that already has a query string gets & not a second ?", () => {
   assert.equal(versionImageUrl("https://x/a.jpg?w=1", "2026-10-23 12:49:27"), "https://x/a.jpg?w=1&v=20261023124927");
+});
+
+// VMG switches the f1 format on per dealer: Dart (1032) has it, Riverside (21)
+// returned 404 on 2026-10-23. A dealer configured on f15 must upgrade itself
+// the day VMG enables f1, and must keep syncing on f15 until then.
+const F15 = "http://feeds.vmgsoftware.co.za/xml/f15/feed_21.xml";
+const F1 = "http://feeds.vmgsoftware.co.za/xml/f1/feed_21.xml";
+
+function serve(routes: Record<string, { status: number; body: string }>) {
+  return mock.method(globalThis, "fetch", async (url: string) => {
+    const r = routes[url] ?? { status: 404, body: "" };
+    return new Response(r.body, { status: r.status });
+  });
+}
+
+test("an f15 address maps to its f1 twin; anything else is left alone", () => {
+  assert.equal(fullPhotoFeedUrl(F15), F1);
+  assert.equal(fullPhotoFeedUrl(F1), F1);
+});
+
+test("configured on f15, f1 available: reads f1 and gets every photo", async (t) => {
+  process.env.VMG_FEED_URL = F15;
+  const fetchMock = serve({ [F1]: { status: 200, body: f1(20) }, [F15]: { status: 200, body: f1(10) } });
+  t.after(() => fetchMock.mock.restore());
+  const { vehicles, photoFeed } = await fetchVehicles();
+  assert.equal(vehicles[0].images.length, 20);
+  assert.equal(photoFeed, "f1");
+});
+
+test("configured on f15, f1 not enabled: keeps syncing on f15 and says so", async (t) => {
+  process.env.VMG_FEED_URL = F15;
+  const fetchMock = serve({ [F15]: { status: 200, body: f1(10) } });
+  t.after(() => fetchMock.mock.restore());
+  const { vehicles, photoFeed } = await fetchVehicles();
+  assert.equal(vehicles.length, 1);
+  assert.match(photoFeed, /f15.*10 photos.*VMG/);
+});
+
+test("configured on f1: one request, no fallback", async (t) => {
+  process.env.VMG_FEED_URL = F1;
+  const fetchMock = serve({ [F1]: { status: 200, body: f1(20) } });
+  t.after(() => fetchMock.mock.restore());
+  const { photoFeed } = await fetchVehicles();
+  assert.equal(fetchMock.mock.callCount(), 1);
+  assert.equal(photoFeed, "f1");
 });

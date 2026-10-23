@@ -18,6 +18,8 @@ export interface SyncResult {
   changed: number;
   /** The slugs behind `changed`, so a run's response says which cars moved. */
   changes: string[];
+  /** Which VMG feed format ran. Anything but "f1" means photos are capped at 10. */
+  photoFeed: string;
 }
 
 /**
@@ -27,7 +29,7 @@ export interface SyncResult {
  * Ported from VMGFeedDartMotors/lib/syncToFramer.ts, targeting Supabase.
  */
 export async function syncStock(): Promise<SyncResult> {
-  const vehicles = await fetchVehicles();
+  const { vehicles, photoFeed } = await fetchVehicles();
 
   // Safety guard: never wipe stock on an empty/failed feed.
   if (vehicles.length === 0) {
@@ -134,5 +136,6 @@ export async function syncStock(): Promise<SyncResult> {
     purged,
     changed: changes.length,
     changes,
+    photoFeed,
   };
 }

@@ -5,22 +5,49 @@ import type { FeedVehicle } from "./types";
 // guard is critical: a dealer with a single car or a single photo would
 // otherwise parse those nodes as objects, not arrays.
 //
-// ⚠️ VMG_FEED_URL must be the **f1** format (`/xml/f1/feed_{dealer}.xml`), not f15.
+// ⚠️ The f1 format (`/xml/f1/feed_{dealer}.xml`) is the one we want, not f15.
 // Both list the same cars, but f15 stops at 10 photos per car while f1 carries
 // up to 20 (VMG's own cap, and Meta's). Found 2026-10-23: Dart's dog photos were
 // on the portals but never on the site because they sat past photo 10. The two
 // formats spell a few tags differently (Colour/colour, Description/description),
-// so the parser reads both and either URL works.
-export async function fetchVehicles(): Promise<FeedVehicle[]> {
-  const feedUrl = process.env.VMG_FEED_URL;
-  if (!feedUrl) throw new Error("VMG_FEED_URL environment variable is not set");
+// so the parser reads both.
+//
+// VMG enables f1 per dealer (Dart's is on, Riverside's 404'd on 2026-10-23), so
+// a dealer configured on f15 tries f1 first and falls back to f15 rather than
+// stop syncing. Stock and prices stay current either way, the day VMG enables
+// f1 the photos upgrade with no config change, and `photoFeed` in the sync
+// response says which one ran so a 10-photo cap is never silent.
+export interface FeedFetch {
+  vehicles: FeedVehicle[];
+  photoFeed: string;
+}
 
-  const response = await fetch(feedUrl, { cache: "no-store" });
+const CAPPED = "f15: capped at 10 photos per car. Ask VMG to enable the f1 feed for this dealer";
+
+/** The f1 twin of an f15 feed address. Any other address is returned unchanged. */
+export function fullPhotoFeedUrl(url: string): string {
+  return url.replace("/xml/f15/", "/xml/f1/");
+}
+
+async function readFeed(url: string): Promise<FeedVehicle[]> {
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`Failed to fetch VMG feed: HTTP ${response.status}`);
   }
-
   return parseVehicles(await response.text());
+}
+
+export async function fetchVehicles(): Promise<FeedFetch> {
+  const feedUrl = process.env.VMG_FEED_URL;
+  if (!feedUrl) throw new Error("VMG_FEED_URL environment variable is not set");
+
+  const fullUrl = fullPhotoFeedUrl(feedUrl);
+  if (fullUrl !== feedUrl) {
+    const vehicles = await readFeed(fullUrl).catch(() => []);
+    if (vehicles.length > 0) return { vehicles, photoFeed: "f1" };
+  }
+
+  return { vehicles: await readFeed(feedUrl), photoFeed: feedUrl.includes("/xml/f15/") ? CAPPED : "f1" };
 }
 
 /**
