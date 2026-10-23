@@ -197,7 +197,10 @@ export default function Gallery({ images, alt }: { images: string[]; alt: string
               onPointerLeave={onImgUp}
               draggable={false}
               style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom ? 2.5 : 1})` }}
-              className={`max-h-full max-w-full touch-none select-none object-contain ${zoom ? "cursor-grab" : "cursor-zoom-in"} ${drag.current ? "" : "transition-transform duration-200"}`}
+              // Fill the screen, not the photo's own pixel size: VMG photos can be as
+              // small as 500px wide, and max-w/max-h alone left those as a small
+              // picture in a black screen (Dart, 2026-10-23).
+              className={`h-full w-full touch-none select-none object-contain ${zoom ? "cursor-grab" : "cursor-zoom-in"} ${drag.current ? "" : "transition-transform duration-200"}`}
             />
             {count > 1 && (
               <>
