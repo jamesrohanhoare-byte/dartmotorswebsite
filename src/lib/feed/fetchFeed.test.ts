@@ -1,6 +1,6 @@
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
-import { fetchVehicles, fullPhotoFeedUrl, parseVehicles, versionImageUrl } from "./fetchFeed.ts";
+import { fetchVehicles, fullPhotoFeedUrl, parseVehicles, stampPhotoVersions, versionImageUrl } from "./fetchFeed.ts";
 
 // Run: npm test
 
@@ -113,11 +113,53 @@ test("configured on f15, f1 not enabled: keeps syncing on f15 and says so", asyn
   assert.match(photoFeed, /f15.*10 photos.*VMG/);
 });
 
-test("configured on f1: one request, no fallback", async (t) => {
+test("configured on f1: one feed request, no fallback", async (t) => {
   process.env.VMG_FEED_URL = F1;
   const fetchMock = serve({ [F1]: { status: 200, body: f1(20) } });
   t.after(() => fetchMock.mock.restore());
   const { photoFeed } = await fetchVehicles();
-  assert.equal(fetchMock.mock.callCount(), 1);
+  const feedCalls = fetchMock.mock.calls.filter((c) => String(c.arguments[0]).includes("/xml/"));
+  assert.equal(feedCalls.length, 1);
   assert.equal(photoFeed, "f1");
+});
+
+// 2026-10-31: VMG re-uploaded Dart's shrunken 500px photos at full size WITHOUT
+// bumping any car's DateUpdated, so every link kept its 29/30 Oct ?v= and Meta's
+// catalogue + weserv kept the small copies. The photo file's own date is the truth.
+function s3(dates: Record<string, string | null>) {
+  return mock.method(globalThis, "fetch", async (url: string, init?: RequestInit) => {
+    assert.equal(init?.method, "HEAD");
+    const lm = dates[url];
+    if (lm === undefined) return new Response(null, { status: 404 });
+    return new Response(null, { status: 200, headers: lm ? { "Last-Modified": lm } : {} });
+  });
+}
+
+test("each photo is stamped with its own file date, not the car's edit date", async (t) => {
+  const [car] = parseVehicles(f1(2));
+  const fetchMock = s3({
+    [`${S3}_I1.jpg`]: "Sat, 31 Oct 2026 23:47:24 GMT",
+    [`${S3}_I2.jpg`]: "Fri, 30 Oct 2026 09:12:05 GMT",
+  });
+  t.after(() => fetchMock.mock.restore());
+  const [stamped] = await stampPhotoVersions([car]);
+  assert.equal(stamped.images[0], `${S3}_I1.jpg?v=20261031234724`);
+  assert.equal(stamped.images[1], `${S3}_I2.jpg?v=20261030091205`);
+});
+
+test("a photo S3 can't date keeps the car's edit date, never loses its link", async (t) => {
+  const [car] = parseVehicles(f1(2));
+  const fetchMock = s3({ [`${S3}_I1.jpg`]: null });
+  t.after(() => fetchMock.mock.restore());
+  const [stamped] = await stampPhotoVersions([car]);
+  assert.equal(stamped.images[0], `${S3}_I1.jpg?v=20261023124927`);
+  assert.equal(stamped.images[1], `${S3}_I2.jpg?v=20261023124927`);
+});
+
+test("S3 being down does not fail the sync", async (t) => {
+  const [car] = parseVehicles(f1(1));
+  const fetchMock = mock.method(globalThis, "fetch", async () => { throw new Error("network"); });
+  t.after(() => fetchMock.mock.restore());
+  const [stamped] = await stampPhotoVersions([car]);
+  assert.equal(stamped.images[0], `${S3}_I1.jpg?v=20261023124927`);
 });

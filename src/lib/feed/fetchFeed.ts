@@ -44,10 +44,43 @@ export async function fetchVehicles(): Promise<FeedFetch> {
   const fullUrl = fullPhotoFeedUrl(feedUrl);
   if (fullUrl !== feedUrl) {
     const vehicles = await readFeed(fullUrl).catch(() => []);
-    if (vehicles.length > 0) return { vehicles, photoFeed: "f1" };
+    if (vehicles.length > 0) return { vehicles: await stampPhotoVersions(vehicles), photoFeed: "f1" };
   }
 
-  return { vehicles: await readFeed(feedUrl), photoFeed: feedUrl.includes("/xml/f15/") ? CAPPED : "f1" };
+  const vehicles = await stampPhotoVersions(await readFeed(feedUrl));
+  return { vehicles, photoFeed: feedUrl.includes("/xml/f15/") ? CAPPED : "f1" };
+}
+
+/**
+ * Re-tags every photo link with that photo file's own last-changed time on S3.
+ *
+ * DateUpdated (below) is not enough on its own: on 2026-10-31 VMG re-uploaded
+ * all of Dart's photos at full size without touching any car's DateUpdated, so
+ * the links never changed and Meta's catalogue and weserv kept serving the old
+ * 500px copies. The file's Last-Modified moves whenever the picture does.
+ * A photo S3 won't date keeps its DateUpdated link, so this can never break a sync.
+ */
+export async function stampPhotoVersions(vehicles: FeedVehicle[], concurrency = 16): Promise<FeedVehicle[]> {
+  const links = [...new Set(vehicles.flatMap((v) => v.images))];
+  const restamped = new Map<string, string>();
+  let next = 0;
+  async function worker() {
+    while (next < links.length) {
+      const link = links[next++];
+      const file = link.replace(/[?&]v=\d+$/, "");
+      try {
+        const res = await fetch(file, { method: "HEAD", cache: "no-store" });
+        const modified = res.ok ? new Date(res.headers.get("Last-Modified") ?? "") : null;
+        if (modified && !isNaN(modified.getTime())) {
+          restamped.set(link, versionImageUrl(file, modified.toISOString().slice(0, 19)));
+        }
+      } catch {
+        // Keep the DateUpdated link.
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, links.length) }, worker));
+  return vehicles.map((v) => ({ ...v, images: v.images.map((link) => restamped.get(link) ?? link) }));
 }
 
 /**
