@@ -47,6 +47,10 @@ export interface SiteStock {
   specs: StockSpec[] | null;
   /** Whether the "Apply for financing" CTA renders. Off for a trailer. */
   show_finance: boolean;
+  /** Set on read only, by lib/stock/promo.ts (promos live in config/promos.ts, never
+   *  in this table): the feed price and badge while a promo runs, else null. */
+  was_price?: number | null;
+  promo_label?: string | null;
 }
 
 export type LeadChannel = "form" | "whatsapp" | "email" | "newsletter";

@@ -1,5 +1,6 @@
 import { supabasePublic as supabase } from "@/lib/supabase/public";
 import type { SiteStock } from "@/lib/types";
+import { applyPromo } from "@/lib/stock/promo";
 
 /**
  * Stock for the Meta catalog feed — the ONLY read in the codebase that returns
@@ -25,5 +26,7 @@ export async function getStockForMetaFeed(): Promise<SiteStock[]> {
     console.error("getStockForMetaFeed:", error.message);
     return [];
   }
-  return (data ?? []) as SiteStock[];
+  // Same promo swap as the website, so a catalog ad never shows a price the
+  // landing page contradicts. When the promo ends, the next hourly fetch reverts it.
+  return ((data ?? []) as SiteStock[]).map((v) => applyPromo(v));
 }

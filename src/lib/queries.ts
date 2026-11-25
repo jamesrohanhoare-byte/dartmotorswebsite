@@ -1,6 +1,7 @@
 import { supabasePublic as supabase } from "@/lib/supabase/public";
 import type { SiteStock } from "@/lib/types";
 import { isWithinSoldGrace } from "@/lib/stock/soldGrace";
+import { applyPromo } from "@/lib/stock/promo";
 
 // All public reads go through the cookie-free anon client so pages render
 // statically (ISR). RLS grants anon SELECT on site_stock only.
@@ -17,7 +18,11 @@ export async function getAvailableStock(): Promise<SiteStock[]> {
     console.error("getAvailableStock:", error.message);
     return [];
   }
-  return (data ?? []) as SiteStock[];
+  // Every public read applies the promo, so a card, a page and the schema agree.
+  // Re-sorted after the swap so a promo car sits by its real (promo) price.
+  return ((data ?? []) as SiteStock[])
+    .map((v) => applyPromo(v))
+    .sort((a, b) => Number(b.featured) - Number(a.featured) || (b.price ?? 0) - (a.price ?? 0));
 }
 
 /** Featured cars for the homepage (falls back to newest available). */
@@ -35,7 +40,7 @@ export async function getStockBySlug(slug: string): Promise<SiteStock | null> {
     .eq("status", "available")
     .maybeSingle();
   if (error || !data) return null;
-  return data as SiteStock;
+  return applyPromo(data as SiteStock);
 }
 
 /**
@@ -65,11 +70,17 @@ export async function getStockBySlugAllowingSold(
     .maybeSingle();
   if (error || !data) return null;
 
-  const vehicle = data as SiteStock;
+  const vehicle = applyPromo(data as SiteStock);
   if (vehicle.status !== "sold") return { vehicle, sold: false };
   // Past the window the feed has dropped it too, so there is no advertising
   // pointing here any more and a 404 is the honest answer again.
   return isWithinSoldGrace(vehicle) ? { vehicle, sold: true } : null;
+}
+
+/** Cars on a running promo (the /black-friday page and the homepage button). */
+export async function getPromoStock(): Promise<SiteStock[]> {
+  const all = await getAvailableStock();
+  return all.filter((v) => v.was_price != null);
 }
 
 /** More available stock, excluding one slug — for the "you may also like" row. */

@@ -46,6 +46,11 @@ export default function VehicleCard({
           <span className="absolute left-3 top-3 rounded-full bg-maroon px-3 py-1 text-[0.65rem] font-medium uppercase tracking-wider text-white">
             Sold
           </span>
+        ) : vehicle.was_price != null ? (
+          // A running promo outranks Featured: it is the reason the car is in the ad.
+          <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-white ring-1 ring-white/25">
+            {vehicle.promo_label ?? "Special"}
+          </span>
         ) : vehicle.featured ? (
           <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-[0.65rem] font-medium uppercase tracking-wider text-white">
             Featured
@@ -57,8 +62,11 @@ export default function VehicleCard({
         ) : null}
       </div>
       <div className="p-4">
-        <div className={`text-lg font-bold ${sold ? "text-muted" : "text-foreground"}`}>
+        <div className={`flex flex-wrap items-baseline gap-x-2 text-lg font-bold ${sold ? "text-muted" : vehicle.was_price != null ? "text-accent" : "text-foreground"}`}>
           {sold ? "Sold" : formatPrice(vehicle.price)}
+          {!sold && vehicle.was_price != null && (
+            <span className="text-sm font-medium text-muted line-through">{formatPrice(vehicle.was_price)}</span>
+          )}
         </div>
         <h3 className="mt-1 line-clamp-2 text-sm font-medium leading-snug text-foreground/90">
           {title}

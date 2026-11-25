@@ -45,6 +45,7 @@ export const META_COLUMNS: string[] = [
   "dealer_name",
   ...Array.from({ length: IMAGE_SLOTS }, (_, i) => `image[${i}].url`),
   "custom_label_0",
+  "custom_label_1",
 ];
 
 /**
@@ -199,6 +200,12 @@ function flatten(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
+/** "Black Friday Special" -> "black_friday" (first two words, snake case). */
+function promoSlug(label: string | null | undefined): string {
+  const words = (label ?? "promo").toLowerCase().match(/[a-z0-9]+/g) ?? ["promo"];
+  return words.slice(0, 2).join("_");
+}
+
 function isJustIn(v: SiteStock): boolean {
   const ageMs = Date.now() - new Date(v.created_at).getTime();
   return ageMs <= JUST_IN_WINDOW_DAYS * 24 * 60 * 60 * 1000;
@@ -261,6 +268,10 @@ export function toFeedRow(v: SiteStock): Record<string, string> {
     // own first-seen timestamp (never rewritten on later upserts — see
     // migration 00049), the same field the website's "Just In" section reads.
     custom_label_0: isJustIn(v) ? "just_in" : "",
+    // Drives a temporary promo product set (Black Friday 2026: "black_friday").
+    // Set only while lib/stock/promo.ts says the promo is live, so the set
+    // empties itself when the promo ends or the car sells.
+    custom_label_1: v.was_price != null && v.status !== "sold" ? promoSlug(v.promo_label) : "",
   };
 
   for (let i = 0; i < IMAGE_SLOTS; i++) {

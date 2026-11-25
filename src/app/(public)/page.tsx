@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Banknote, Clock, Award, ChevronDown } from "lucide-react";
-import { getFeaturedStock } from "@/lib/queries";
+import { getFeaturedStock, getPromoStock } from "@/lib/queries";
 import { dealer, whatsappLink } from "@/config/dealer";
 import VehicleCard from "@/components/site/VehicleCard";
 import ScrollRow from "@/components/site/ScrollRow";
@@ -55,6 +55,9 @@ const FAQS = [
 
 export default async function HomePage() {
   const featured = await getFeaturedStock(6);
+  // Only while a promo is live (lib/stock/promo.ts). No promo, no button.
+  const promo = await getPromoStock();
+  const promoLabel = promo[0]?.promo_label?.replace(/\s*special$/i, "") ?? null;
 
   const faqSchema = {
     "@context": "https://schema.org",
@@ -80,6 +83,14 @@ export default async function HomePage() {
             <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-semibold">Dart · Since 1975</span>
             <h1 className="mx-auto mt-4 max-w-2xl text-4xl font-extrabold leading-[1.05] md:text-6xl lg:text-7xl">{dealer.tagline}</h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">{dealer.heroSub}</p>
+            {promo.length > 0 && promoLabel && (
+              <Link
+                href="/black-friday"
+                className="mx-auto mt-6 flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-black px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-white ring-1 ring-white/30 transition-colors hover:bg-neutral-900 sm:w-auto"
+              >
+                Check out {promoLabel} deals <ArrowRight size={16} />
+              </Link>
+            )}
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/shop" className="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold sm:w-auto">
                 Buy a Car <ArrowRight size={16} />
