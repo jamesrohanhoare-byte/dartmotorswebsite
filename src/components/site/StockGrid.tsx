@@ -151,7 +151,7 @@ export default function StockGrid({
             <h2 id="promo" className="text-2xl font-extrabold uppercase tracking-tight md:text-4xl">
               {promoTitle}
             </h2>
-            <p className="text-sm font-semibold text-accent">{promo.length} cars, prices cut</p>
+            <p className="text-sm font-bold text-[#ffd400]">{promo.length} cars, prices cut</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {promo.map((v) => (

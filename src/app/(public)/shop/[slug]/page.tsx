@@ -180,11 +180,11 @@ export default async function VehiclePage(props: {
             // Running promo (lib/stock/promo.ts): the deal, then what it was.
             <div className="mt-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-block rounded-full bg-black px-4 py-1.5 text-sm font-extrabold uppercase tracking-wider text-white ring-1 ring-white/25">
+                <span className="inline-block rounded-full bg-[#ffd400] px-4 py-1.5 text-sm font-black uppercase tracking-wider text-black">
                   {v.promo_label ?? "Special"}
                 </span>
                 {v.price != null && v.was_price > v.price && (
-                  <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-extrabold uppercase tracking-wide text-white">
+                  <span className="inline-block rounded-full bg-black px-4 py-1.5 text-sm font-extrabold uppercase tracking-wide text-[#ffd400] ring-1 ring-[#ffd400]">
                     Save {formatPrice(v.was_price - v.price)}
                   </span>
                 )}

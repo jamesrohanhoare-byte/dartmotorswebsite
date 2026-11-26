@@ -50,12 +50,12 @@ export default function VehicleCard({
           // A running promo outranks Featured: it is the reason the car is in the ad.
           // Geoff (2026-11-26): the small pill disappeared on dark photos, so the
           // promo is a full-width band across the bottom of the photo with the saving.
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-black/90 px-3 py-2.5 ring-1 ring-white/10">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-white sm:text-sm">
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-[#ffd400] px-3 py-2.5">
+            <span className="text-xs font-black uppercase tracking-wider text-black sm:text-sm">
               {vehicle.promo_label ?? "Special"}
             </span>
             {vehicle.price != null && vehicle.was_price > vehicle.price && (
-              <span className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide text-white sm:text-xs">
+              <span className="shrink-0 rounded-full bg-black px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide text-[#ffd400] sm:text-xs">
                 Save {formatPrice(vehicle.was_price - vehicle.price)}
               </span>
             )}
@@ -105,7 +105,7 @@ export default function VehicleCard({
       // bot that scrolls spends it too. They are all cache HITs, so nothing is
       // gained on the origin by warming them early. Hover still prefetches.
       prefetch={false}
-      className={`group block overflow-hidden rounded-2xl border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40 ${vehicle.was_price != null ? "border-accent ring-1 ring-accent/60" : "border-border"}`}
+      className={`group block overflow-hidden rounded-2xl border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40 ${vehicle.was_price != null ? "border-[#ffd400] ring-2 ring-[#ffd400]/70" : "border-border"}`}
     >
       {content}
     </Link>
