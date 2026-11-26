@@ -8,9 +8,12 @@ import { cdnImg } from "@/lib/img";
 export default function VehicleCard({
   vehicle,
   sold = false,
+  priority = false,
 }: {
   vehicle: SiteStock;
   sold?: boolean;
+  /** First cards on screen: load eagerly at high priority (they are the LCP). */
+  priority?: boolean;
 }) {
   const lead = vehicle.images?.[0];
   const title = stockTitle(vehicle);
@@ -33,7 +36,8 @@ export default function VehicleCard({
           <img
             src={cdnImg(lead, 640)}
             alt={title}
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             decoding="async"
             className={`h-full w-full object-cover transition-transform duration-500 ${sold ? "opacity-90" : "group-hover:scale-105"}`}
           />

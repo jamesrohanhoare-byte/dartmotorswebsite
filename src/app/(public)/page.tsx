@@ -73,11 +73,18 @@ export default async function HomePage() {
     <>
       <DealerSchema />
 
-      {/* ── Hero (single vintage heritage photo) ──────────────── */}
+      {/* ── Hero (the Rivergate showroom, Geoff's photos 2026-11-26) ── */}
       <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden bg-neutral-900 text-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/vintage/vintage-lot.jpg" alt="Dart Motors, Cape Town — trading since 1975" className="hero-zoom absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/80" />
+        <img
+          src="/premises/showroom-facade.jpg"
+          srcSet="/premises/showroom-facade-800.jpg 800w, /premises/showroom-facade.jpg 1280w"
+          sizes="100vw"
+          alt="The Dart Motors showroom at 46 Columbus Crescent, Rivergate, Cape Town"
+          fetchPriority="high"
+          className="hero-zoom absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/85" />
         <div className="px-page relative mx-auto w-full max-w-3xl pt-24 pb-14 text-center">
           <Reveal>
             <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-semibold">Dart · Since 1975</span>
@@ -116,22 +123,24 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Cinematic video band (Hilux) ─────────────────────── */}
+      {/* ── Showroom band (real floor photo; replaced a 4 MB stock Hilux video
+           that showed a black band until it loaded on slow connections) ── */}
       <section className="relative overflow-hidden">
         <div className="relative flex min-h-[52vh] items-center justify-center md:min-h-[64vh]">
-          <video
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/premises/showroom-floor.jpg"
+            srcSet="/premises/showroom-floor-800.jpg 800w, /premises/showroom-floor.jpg 1280w"
+            sizes="100vw"
+            alt="Cars on the Dart Motors showroom floor in Rivergate"
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
-            src="/hilux-web.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/45" />
           <div className="px-page relative mx-auto w-full max-w-[1400px] py-16 text-center text-white">
             <Reveal>
-              <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">Dart · Since 1970s</span>
+              <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">Inside our Rivergate showroom</span>
               <h2 className="mx-auto mt-4 max-w-2xl text-3xl font-extrabold leading-tight md:text-5xl">Quality Pre-Owned. Ready to Ride.</h2>
               <p className="mx-auto mt-4 max-w-xl text-white/85">Carefully checked, road-ready cars and bakkies, giving you performance and reliability without the new price tag.</p>
               <div className="mt-7 flex flex-wrap justify-center gap-3">
@@ -167,9 +176,9 @@ export default async function HomePage() {
         <div className="px-page mx-auto grid max-w-[1400px] items-center gap-12 md:grid-cols-2">
           <Reveal>
             <span className="eyebrow mb-4 text-accent">Est. 1975</span>
-            <h2 className="text-3xl font-extrabold leading-tight text-foreground md:text-5xl">Fifty years<br />on the same streets.</h2>
+            <h2 className="text-3xl font-extrabold leading-tight text-foreground md:text-5xl">Fifty years.<br />A new home.</h2>
             <p className="mt-5 max-w-md leading-relaxed text-muted">
-              Dart Motors has been selling honest, quality used cars in Cape Town since 1975. Different cars, same handshake. Half a century of families driving off our floor is a trust you can&apos;t fake, and don&apos;t rent from anyone.
+              Dart Motors has been selling honest, quality used cars in Cape Town since 1975, starting on Sir Lowry Road in Woodstock. In November 2026 we moved into our new showroom at 46 Columbus Crescent, Rivergate. New address, same handshake. Half a century of families driving off our floor is a trust you can&apos;t fake.
             </p>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
               These are the real photos, from the days the sign was hand-painted. The lot has changed. The way we do business hasn&apos;t.
@@ -187,7 +196,16 @@ export default async function HomePage() {
       {/* ── Finance CTA (photo band) ─────────────────────────── */}
       <section className="relative overflow-hidden py-20 text-white md:py-28">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/ready-to-ride.jpg" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src="/premises/showroom-reception.jpg"
+          srcSet="/premises/showroom-reception-800.jpg 800w, /premises/showroom-reception.jpg 1280w"
+          sizes="100vw"
+          alt=""
+          aria-hidden
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/65 to-black/80" />
         <div className="px-page relative mx-auto max-w-2xl text-center">
           <Reveal>

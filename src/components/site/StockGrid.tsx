@@ -154,8 +154,8 @@ export default function StockGrid({
             <p className="text-sm font-bold text-[#ffd400]">{promo.length} cars, prices cut</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {promo.map((v) => (
-              <VehicleCard key={v.id} vehicle={v} />
+            {promo.map((v, i) => (
+              <VehicleCard key={v.id} vehicle={v} priority={i < 3} />
             ))}
           </div>
         </section>
@@ -170,8 +170,8 @@ export default function StockGrid({
             <p className="text-sm text-muted">Listed in the last {JUST_IN_DAYS} days</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {justIn.map((v) => (
-              <VehicleCard key={v.id} vehicle={v} />
+            {justIn.map((v, i) => (
+              <VehicleCard key={v.id} vehicle={v} priority={promo.length === 0 && i < 3} />
             ))}
           </div>
         </section>
@@ -187,8 +187,13 @@ export default function StockGrid({
 
       {filtered.length ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((v) => (
-            <VehicleCard key={v.id} vehicle={v} />
+          {filtered.map((v, i) => (
+            <VehicleCard
+              key={v.id}
+              vehicle={v}
+              // The first cards on screen are the LCP: only when no strip sits above them.
+              priority={i < 3 && (isFiltering || (promo.length === 0 && justIn.length === 0))}
+            />
           ))}
         </div>
       ) : (

@@ -6,7 +6,11 @@ import { dealer, whatsappLink, emailLink } from "@/config/dealer";
 import { trackVehicle, newEventId, metaCookies } from "@/lib/meta/track";
 
 // Per-car enquiry buttons. WhatsApp is the PRIMARY channel (Dart sells via
-// WhatsApp). Each click also logs the lead to site_leads (anon insert, RLS-safe).
+// WhatsApp). Each click (WhatsApp, Email AND Call) fires Meta `Contact` (pixel +
+// CAPI, deduped) and logs the lead to site_leads (anon insert, RLS-safe).
+// 2026-11-26: the "I'm interested in this car" form was removed (Geoff/James), so
+// these three buttons are now the ONLY per-car Contact events the catalogue ads
+// optimise on. Never remove the log() call from any of them.
 export default function VehicleEnquiry({
   stockSlug,
   title,
@@ -24,7 +28,7 @@ export default function VehicleEnquiry({
   price: number | null;
   stockId: number; // numeric form of vehicleId, for the server-side event
 }) {
-  function log(channel: "whatsapp" | "email") {
+  function log(channel: "whatsapp" | "email" | "call") {
     // Mirror the click to Meta as a Lead. A WhatsApp click IS the conversion on
     // this site — it is where Dart's sale actually starts — so this is the event
     // the catalog campaign should be optimising toward, not the pageview.
@@ -96,6 +100,7 @@ export default function VehicleEnquiry({
         </a>
         <a
           href={`tel:${dealer.phoneTel}`}
+          onClick={() => log("call")}
           className="flex items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-3.5 text-sm font-medium transition-colors hover:bg-surface-2"
         >
           <Phone size={16} /> Call

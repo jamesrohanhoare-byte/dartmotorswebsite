@@ -63,6 +63,33 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* New showroom (moved November 2026) */}
+      <section className="mt-14">
+        <h2 className="text-2xl font-bold md:text-3xl">Our new showroom</h2>
+        <p className="mt-2 max-w-2xl text-muted">
+          Visit us at {dealer.address.line1}, {dealer.address.suburb}, {dealer.address.city}.
+        </p>
+        <div className="mt-6 grid gap-5 md:grid-cols-2">
+          {[
+            { src: "showroom-street", alt: "Dart Motors from the street, 46 Columbus Crescent, Rivergate" },
+            { src: "showroom-floor", alt: "Cars on the Dart Motors showroom floor" },
+          ].map((p) => (
+            <div key={p.src} className="overflow-hidden rounded-2xl border border-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/premises/${p.src}.jpg`}
+                srcSet={`/premises/${p.src}-800.jpg 800w, /premises/${p.src}.jpg 1280w`}
+                sizes="(min-width: 768px) 50vw, 100vw"
+                alt={p.alt}
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/3] w-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Team */}
       <section className="mt-14">
         <h2 className="text-2xl font-bold md:text-3xl">The team</h2>

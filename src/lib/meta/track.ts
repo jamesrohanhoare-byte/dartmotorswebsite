@@ -101,7 +101,7 @@ function storedFbc(): string | undefined {
  * whichever actually sells cars, with a rule change and no code. Without the
  * tag that comparison is impossible after the fact, because the data is gone.
  */
-export type LeadChannel = "form" | "whatsapp" | "email";
+export type LeadChannel = "form" | "whatsapp" | "email" | "call";
 
 /**
  * ⚠️ WHY `Contact` AND NOT `Lead` — do not "fix" this back.

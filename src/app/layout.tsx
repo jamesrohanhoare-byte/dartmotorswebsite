@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { dealer } from "@/config/dealer";
 import MetaPixel from "@/components/site/MetaPixel";
+import { preconnect } from "react-dom";
 
 // Inter throughout — the same typeface the live Framer site uses.
 const inter = Inter({
@@ -54,6 +55,9 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Every car photo comes from the weserv CDN. Opening that connection early
+  // takes the DNS + TLS handshake off the first photo (the LCP on /shop + car pages).
+  preconnect("https://images.weserv.nl");
   return (
     <html
       lang="en-ZA"

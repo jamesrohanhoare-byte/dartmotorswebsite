@@ -12,7 +12,6 @@ import {
   transmissionFromVariant,
 } from "@/lib/format";
 import Gallery from "@/components/site/Gallery";
-import VehicleInterest from "@/components/site/VehicleInterest";
 import VehicleEnquiry from "@/components/site/VehicleEnquiry";
 import VehicleCard from "@/components/site/VehicleCard";
 import ScrollRow from "@/components/site/ScrollRow";
@@ -234,14 +233,8 @@ export default async function VehiclePage(props: {
             </div>
           ) : (
           <div className="mt-6 space-y-3">
-            {/* PRIMARY: capture the lead first, tagged to this car, then hand to WhatsApp. */}
-            <VehicleInterest stockSlug={v.slug} title={title} message={msg} vehicleId={metaVehicleId(v)} price={v.price} stockId={v.stock_id} />
-
-            <div className="flex items-center gap-3 text-xs text-muted">
-              <span className="h-px flex-1 bg-border" /> or reach us directly <span className="h-px flex-1 bg-border" />
-            </div>
-
-            {/* Existing quick channels (WhatsApp / Email / Call), still logged per-car. */}
+            {/* Per-car channels (WhatsApp / Email / Call): each fires Meta Contact + logs to site_leads.
+                The "I'm interested" capture form was removed 2026-11-26 (James): fewer steps. */}
             <VehicleEnquiry stockSlug={v.slug} title={title} message={msg} emailSubject={`Enquiry: ${title}`} vehicleId={metaVehicleId(v)} price={v.price} stockId={v.stock_id} />
 
             {/* Hidden per-listing for things a finance house will not fund. A dead-end

@@ -70,7 +70,7 @@ export async function POST(req: Request) {
       : undefined,
     // Closed allowlist here too: this route is public, so an arbitrary string
     // would let anyone write junk attribution into Dart's dataset.
-    leadChannel: ["whatsapp", "email", "form"].includes(body.lead_channel ?? "")
+    leadChannel: ["whatsapp", "email", "form", "call"].includes(body.lead_channel ?? "")
       ? body.lead_channel
       : undefined,
     clientIpAddress: clientIpFrom(req.headers),

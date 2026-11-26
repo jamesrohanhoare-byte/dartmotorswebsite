@@ -117,8 +117,12 @@ export default function Gallery({ images, alt }: { images: string[]; alt: string
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={cdnImg(src, 1400, 82)}
+                // Phones were pulling the 1400px copy (~115 KB) for a ~400px frame.
+                srcSet={`${cdnImg(src, 640, 80)} 640w, ${cdnImg(src, 1000, 82)} 1000w, ${cdnImg(src, 1400, 82)} 1400w`}
+                sizes="(min-width: 1024px) 60vw, 100vw"
                 alt={`${alt} — photo ${i + 1}`}
                 loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "auto"}
                 decoding="async"
                 className="h-full w-full object-cover"
               />

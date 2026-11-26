@@ -83,6 +83,7 @@ export const dealer = {
     "It started in 1965, when founder Errol worked his way through the motor industry before opening the doors of Dart Motors on 6 April 1975.",
     "By the late 1970s Dart had introduced its own in-house financing, with 35 vehicles, a staff of three, and monthly payments from as little as R50 a month. Dart went on to become a registered credit provider with the National Credit Regulator, adding roadworthy certifications, warranties and insurance so customers could do everything under one roof.",
     "Errol built the business on honesty and integrity, values his son Geoff carried forward when he took over in 2017. Today Dart Motors runs 80+ vehicles and a team of eleven, still trading on the same trust it was founded on.",
+    "In November 2026 Dart Motors left Sir Lowry Road for a new showroom at 46 Columbus Crescent, Rivergate. A new address, the same family and the same handshake.",
   ],
 
   // Team — real photos in /public/team (⚠️ James: confirm name spellings).
