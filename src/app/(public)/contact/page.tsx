@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { MapPin, Clock, Phone, Mail, MessageCircle } from "lucide-react";
-import { dealer, whatsappLink, temporaryAddressLine, temporaryMapsLink, temporaryMapEmbedSrc } from "@/config/dealer";
+import { dealer, whatsappLink, temporaryAddressLine, temporaryMapsLink, temporaryMapEmbedSrc, addressLine, mapsLink, mapEmbedSrc } from "@/config/dealer";
 import ContactForm from "@/components/site/ContactForm";
 import Socials from "@/components/site/Socials";
 
@@ -15,11 +15,11 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   // While Dart is between premises, the map + "Visit us" card point at the
-  // temporary site. Page metadata deliberately stays on Woodstock (SEO).
+  // temporary site. Otherwise the permanent showroom, pinned by coordinates.
   const moving = dealer.temporaryLocation.active;
   const mapQuery = moving
     ? temporaryAddressLine()
-    : `${dealer.address.line1}, ${dealer.address.suburb}, ${dealer.address.city}`;
+    : addressLine();
 
   type Item = {
     icon: typeof MapPin;
@@ -37,7 +37,13 @@ export default function ContactPage() {
         href: temporaryMapsLink(),
         external: true,
       }
-    : { icon: MapPin, label: "Visit us", value: mapQuery };
+    : {
+        icon: MapPin,
+        label: dealer.movedNotice.active ? "Visit our new showroom" : "Visit us",
+        value: mapQuery,
+        href: mapsLink(),
+        external: true,
+      };
 
   const items: Item[] = [
     visit,
@@ -103,7 +109,7 @@ export default function ContactPage() {
         <div className="overflow-hidden rounded-2xl border border-border lg:sticky lg:top-24 lg:h-[620px]">
           <iframe
             title={moving ? `${dealer.name} temporary location` : `${dealer.name} location`}
-            src={moving ? temporaryMapEmbedSrc() : `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
+            src={moving ? temporaryMapEmbedSrc() : mapEmbedSrc()}
             className="h-full min-h-[360px] w-full"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

@@ -1,21 +1,24 @@
 import { MapPin, ArrowRight } from "lucide-react";
-import { dealer, temporaryAddressLine, temporaryMapsLink } from "@/config/dealer";
+import { dealer, temporaryAddressLine, temporaryMapsLink, addressLine, mapsLink } from "@/config/dealer";
 
 // Orange relocation bar. Sits directly under the maroon Ticker and above the
 // sticky Nav. Deliberately NOT sticky — Nav is `sticky top-0` and the contact +
 // vehicle pages pin columns at `lg:top-24` against an 80px header, so a second
 // sticky band would push those columns under the header.
-// Turn off in one line: dealer.temporaryLocation.active = false.
+// Two modes: temporaryLocation.active (the gap between premises) or
+// movedNotice.active ("We've moved!" to the permanent showroom). Both off = no bar.
 export default function MovingNotice() {
   const t = dealer.temporaryLocation;
-  if (!t.active) return null;
+  const m = dealer.movedNotice;
+  if (!t.active && !m.active) return null;
 
-  const address = temporaryAddressLine();
-  const lead = `${t.notice} We're temporarily based at`;
+  const address = t.active ? temporaryAddressLine() : addressLine();
+  const href = t.active ? temporaryMapsLink() : mapsLink();
+  const lead = t.active ? `${t.notice} We're temporarily based at` : `${m.notice} Find us at`;
 
   return (
     <a
-      href={temporaryMapsLink()}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 bg-accent px-4 py-2 text-center text-[0.78rem] font-semibold leading-snug text-[#1b1712] transition-colors hover:bg-accent-hover"

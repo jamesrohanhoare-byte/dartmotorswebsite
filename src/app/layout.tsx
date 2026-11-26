@@ -23,7 +23,10 @@ export const metadata: Metadata = {
   description,
   keywords: [
     "used cars Cape Town",
-    "used cars Woodstock",
+    "used cars Rivergate",
+    "used cars Parklands",
+    "used cars Table View",
+    "used cars Milnerton",
     "car finance Cape Town",
     "used car finance Cape Town",
     "pre-owned cars Cape Town",

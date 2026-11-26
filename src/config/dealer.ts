@@ -22,20 +22,23 @@ export const dealer = {
   whatsapp: "27822699882", // +27 82 269 9882
 
   address: {
-    line1: "130 Sir Lowry Rd",
-    suburb: "Woodstock",
+    // Moved 2026-11 from 130 Sir Lowry Rd, Woodstock (trading since 1975) to the
+    // permanent RiverGate showroom. Number read off the gate pillar in Geoff's
+    // photos; neighbours list as 41/43/45 Columbus Crescent, Rivergate, 7441.
+    line1: "46 Columbus Crescent",
+    suburb: "Rivergate",
     city: "Cape Town",
     province: "Western Cape",
-    postalCode: "7925",
+    postalCode: "7441",
     country: "South Africa",
   },
   // TEMPORARY PREMISES — Dart is moving out of Woodstock; the permanent site near
   // Rivergate is not ready yet, so they are trading from a farm property in the gap.
-  // Set active: false to remove the notice bar and restore the Woodstock map.
+  // Set active: false to drop back to the permanent showroom.
   // Deliberately NOT wired into SEO metadata, JSON-LD schema or the Meta feed —
   // those stay on Woodstock so local ranking is not churned by a temporary address.
   temporaryLocation: {
-    active: true as boolean,
+    active: false as boolean, // off 2026-11-26: Dart is in the permanent showroom
     line1: "73 Zonnekus Road",
     suburb: "Morningstar",
     city: "Cape Farms",
@@ -49,6 +52,10 @@ export const dealer = {
     geo: { lat: -33.756064, lng: 18.520783 },
   },
 
+  // "We've moved" bar (orange, under the ticker). Points at the permanent address.
+  // Turn off in one line once customers have caught up (a month or two).
+  movedNotice: { active: true as boolean, notice: "We've moved!" },
+
   // ⚠️ Opening hours — not on the current site. Placeholder; confirm with James.
   hours: "Mon to Fri 08:00 to 17:00 · Sat 08:00 to 13:00",
   hoursWeekday: "Mon to Fri 08:00 to 17:00",
@@ -56,8 +63,8 @@ export const dealer = {
 
   // SEO
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://dartmotors.net",
-  seoRegion: "Woodstock, Cape Town",
-  geo: { lat: -33.927, lng: 18.445 }, // approx Woodstock; refine with real listing
+  seoRegion: "Rivergate, Cape Town",
+  geo: { lat: -33.79533, lng: 18.530931 }, // 46 Columbus Crescent: James's pin, 2026-11-26
   // Socials
   facebook: "https://web.facebook.com/DartMotors",
   instagram: "https://www.instagram.com/dart_motors_official/",
@@ -171,6 +178,24 @@ export function temporaryMapsLink(): string {
 export function temporaryMapEmbedSrc(): string {
   const { lat, lng } = dealer.temporaryLocation.geo;
   return `https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+}
+
+/** Full one-line permanent address. */
+export function addressLine(): string {
+  const a = dealer.address;
+  return `${a.line1}, ${a.suburb}, ${a.city}`;
+}
+
+/** Google Maps link for the showroom, pinned to coordinates so it opens on the gate. */
+export function mapsLink(): string {
+  const { lat, lng } = dealer.geo;
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+}
+
+/** Embeddable Google Maps iframe src for the showroom. */
+export function mapEmbedSrc(): string {
+  const { lat, lng } = dealer.geo;
+  return `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
 }
 
 /** Build a WhatsApp click-to-chat link with a pre-filled message. */

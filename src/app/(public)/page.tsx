@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     q: "Where is Dart Motors based?",
-    a: "We're at 130 Sir Lowry Road, Woodstock, Cape Town. You're welcome to visit the showroom during trading hours, Monday to Saturday.",
+    a: "We're at 46 Columbus Crescent, Rivergate, Cape Town (our new showroom, since November 2026). You're welcome to visit the showroom during trading hours, Monday to Saturday.",
   },
   {
     q: "How long has Dart Motors been trading?",
@@ -86,7 +86,7 @@ export default async function HomePage() {
             {promo.length > 0 && promoLabel && (
               <Link
                 href="/black-friday"
-                className="mx-auto mt-6 flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-black px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-white ring-1 ring-white/30 transition-colors hover:bg-neutral-900 sm:w-auto"
+                className="mx-auto mt-6 flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-black px-7 py-3.5 text-sm font-extrabold uppercase tracking-wider text-[#ffd400] ring-2 ring-[#ffd400] transition-colors hover:bg-[#ffd400] hover:text-black sm:w-auto"
               >
                 Check out {promoLabel} deals <ArrowRight size={16} />
               </Link>

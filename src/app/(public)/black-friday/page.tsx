@@ -28,13 +28,13 @@ export default async function BlackFridayPage() {
   return (
     <div className="px-page mx-auto max-w-[1400px] py-5 md:py-16">
       <header className="mb-8">
-        <span className="inline-block rounded-full bg-black px-3 py-1 text-xs font-bold uppercase tracking-wider text-white ring-1 ring-white/25">
+        <span className="inline-block rounded-full bg-[#ffd400] px-4 py-1.5 text-sm font-black uppercase tracking-wider text-black">
           Limited time
         </span>
         <h1 className="mt-3 text-3xl font-extrabold tracking-tight md:text-5xl">Black Friday Deals</h1>
         <p className="mt-3 max-w-2xl text-muted">
           {stock.length} hand-picked {stock.length === 1 ? "car" : "cars"} with up to{" "}
-          <span className="font-semibold text-foreground">{formatPrice(saving)} off</span>, for a
+          <span className="font-bold text-[#ffd400]">{formatPrice(saving)} off</span>, for a
           limited time only. Every one is inspected and ready to drive, with finance available.
         </p>
       </header>
