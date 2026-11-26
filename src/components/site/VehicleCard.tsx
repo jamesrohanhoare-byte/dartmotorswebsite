@@ -48,9 +48,18 @@ export default function VehicleCard({
           </span>
         ) : vehicle.was_price != null ? (
           // A running promo outranks Featured: it is the reason the car is in the ad.
-          <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-white ring-1 ring-white/25">
-            {vehicle.promo_label ?? "Special"}
-          </span>
+          // Geoff (2026-11-26): the small pill disappeared on dark photos, so the
+          // promo is a full-width band across the bottom of the photo with the saving.
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-black/90 px-3 py-2.5 ring-1 ring-white/10">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-white sm:text-sm">
+              {vehicle.promo_label ?? "Special"}
+            </span>
+            {vehicle.price != null && vehicle.was_price > vehicle.price && (
+              <span className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide text-white sm:text-xs">
+                Save {formatPrice(vehicle.was_price - vehicle.price)}
+              </span>
+            )}
+          </div>
         ) : vehicle.featured ? (
           <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-[0.65rem] font-medium uppercase tracking-wider text-white">
             Featured
@@ -96,7 +105,7 @@ export default function VehicleCard({
       // bot that scrolls spends it too. They are all cache HITs, so nothing is
       // gained on the origin by warming them early. Hover still prefetches.
       prefetch={false}
-      className="group block overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
+      className={`group block overflow-hidden rounded-2xl border bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40 ${vehicle.was_price != null ? "border-accent ring-1 ring-accent/60" : "border-border"}`}
     >
       {content}
     </Link>

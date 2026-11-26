@@ -179,11 +179,18 @@ export default async function VehiclePage(props: {
           ) : v.was_price != null ? (
             // Running promo (lib/stock/promo.ts): the deal, then what it was.
             <div className="mt-2">
-              <span className="inline-block rounded-full bg-black px-3 py-1 text-xs font-bold uppercase tracking-wider text-white ring-1 ring-white/25">
-                {v.promo_label ?? "Special"}
-              </span>
-              <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="text-2xl font-bold text-accent">{formatPrice(v.price)}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-block rounded-full bg-black px-4 py-1.5 text-sm font-extrabold uppercase tracking-wider text-white ring-1 ring-white/25">
+                  {v.promo_label ?? "Special"}
+                </span>
+                {v.price != null && v.was_price > v.price && (
+                  <span className="inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-extrabold uppercase tracking-wide text-white">
+                    Save {formatPrice(v.was_price - v.price)}
+                  </span>
+                )}
+              </div>
+              <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-3xl font-extrabold text-accent">{formatPrice(v.price)}</span>
                 <span className="text-lg font-medium text-muted line-through">Was {formatPrice(v.was_price)}</span>
               </div>
             </div>

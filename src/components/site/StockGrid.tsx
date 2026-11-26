@@ -57,6 +57,14 @@ export default function StockGrid({
   // look like it had done nothing: the top of the page never changed.
   const isFiltering = query.trim() !== "" || make !== "All" || band !== "All";
 
+  // Running promo cars get their own strip at the very top (lib/stock/promo.ts
+  // sets was_price only while a promo is live, so this vanishes by itself).
+  const promo = useMemo(
+    () => stock.filter((v) => v.was_price != null).sort((a, b) => (b.price ?? 0) - (a.price ?? 0)),
+    [stock],
+  );
+  const promoTitle = `${(promo[0]?.promo_label ?? "Special").replace(/\s*specials?$/i, "")} Specials`;
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const bandDef = PRICE_BANDS.find((b) => b.label === band);
@@ -89,7 +97,12 @@ export default function StockGrid({
         case "year-desc": return (b.year ?? 0) - (a.year ?? 0);
         case "km-asc": return (a.mileage ?? 1e9) - (b.mileage ?? 1e9);
         default:
-          return Number(b.featured) - Number(a.featured) || (b.price ?? 0) - (a.price ?? 0);
+          // Running promo first (Geoff, Black Friday 2026), then Featured, then price.
+          return (
+            Number(b.was_price != null) - Number(a.was_price != null) ||
+            Number(b.featured) - Number(a.featured) ||
+            (b.price ?? 0) - (a.price ?? 0)
+          );
       }
     });
   }, [stock, query, make, band, sort]);
@@ -132,6 +145,22 @@ export default function StockGrid({
         </div>
       </div>
 
+      {!isFiltering && promo.length > 0 && (
+        <section aria-labelledby="promo" className="mb-10 mt-6 md:mb-16 md:mt-8">
+          <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 id="promo" className="text-2xl font-extrabold uppercase tracking-tight md:text-4xl">
+              {promoTitle}
+            </h2>
+            <p className="text-sm font-semibold text-accent">{promo.length} cars, prices cut</p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {promo.map((v) => (
+              <VehicleCard key={v.id} vehicle={v} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {!isFiltering && justIn.length > 0 && (
         <section aria-labelledby="just-in" className="mb-10 mt-6 md:mb-16 md:mt-8">
           <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -148,7 +177,7 @@ export default function StockGrid({
         </section>
       )}
 
-      {!isFiltering && justIn.length > 0 && (
+      {!isFiltering && (justIn.length > 0 || promo.length > 0) && (
         <h2 className="text-xl font-bold tracking-tight md:text-2xl">All Stock</h2>
       )}
 
